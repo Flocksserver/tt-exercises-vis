@@ -142,6 +142,8 @@ code {
 }
 .btn-icon:hover:not(:disabled) { background: #fbeaec; color: var(--b); }
 .btn-icon:disabled { opacity: .3; cursor: not-allowed; }
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--ink); cursor: pointer; user-select: none; }
+.toggle input { accent-color: var(--green); }
 
 /* SVG output */
 .svg-container {
@@ -174,6 +176,7 @@ code {
 }
 .swatch-a { border-top-color: var(--a); }
 .swatch-b { border-top-color: var(--b); }
+.swatch-feed { border-top: 3px dashed var(--muted); }
 
 /* Footer */
 .site-footer {

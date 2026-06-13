@@ -1,24 +1,28 @@
 /*
  * geometry.js — Koordinaten für Tisch und Ball-Positionen.
  *
- * Draufsicht auf den Tisch:
- *   - Spieler A steht vorne (unten, großes y), Spieler B hinten (oben, kleines y).
- *   - Netz = waagerechte Linie in der Mitte (midY).
- *   - VH/RH/Mitte bestimmen die seitliche Lage (x):
- *       A: VH = rechts, RH = links, Mitte = Mitte
- *       B: VH = links,  RH = rechts, Mitte = Mitte   (Spieler stehen sich gegenüber)
- *   - lang  = an der Grundlinie (weit vom Netz)
- *     kurz  = nahe am Netz
+ * Draufsicht: Spieler A vorne (unten, großes y), Spieler B hinten (oben, kleines y).
+ * Netz = waagerechte Linie in der Mitte (midY).
+ *
+ * Seitliche Lage (x) je Position – aus Sicht von A: VH = rechts, RH = links.
+ *   VH · MitteVH · Mitte · MitteRH/Ellbogen · RH   (B spiegelverkehrt)
+ * Tiefe (y, Abstand vom Netz): kurz (am Netz) · halblang (Mitte) · lang (Grundlinie)
  */
 (function (TTV) {
   'use strict';
 
-  var TABLE_W = 164;   // Tischbreite (x)
-  var TABLE_L = 274;   // Tischlänge (y)
-  var MARGIN_X = 52;   // seitlicher Rand / Abstand zwischen Tischen
-  var MARGIN_Y = 56;   // Rand oben/unten (Platz für Labels)
-  var INSET = 20;      // Abstand der Grundlinien-Positionen von der Tischkante
-  var NET_OFFSET = 34; // Abstand der Kurz-Positionen vom Netz
+  var TABLE_W = 164;
+  var TABLE_L = 274;
+  var MARGIN_X = 52;
+  var MARGIN_Y = 56;
+  var INSET = 18;
+
+  // seitliche Lage (0 = links … 1 = rechts) aus Sicht von Spieler A
+  var LX_A = {
+    VH: 0.85, MitteVH: 0.66, Mitte: 0.50, MitteRH: 0.34, Ellbogen: 0.34, RH: 0.15
+  };
+  // Tiefe als Anteil der halben Tischlänge, vom Netz aus gemessen
+  var DEPTH = { kurz: 0.26, halblang: 0.56, lang: 0.90 };
 
   function layout(numberOfTables) {
     return {
@@ -37,50 +41,32 @@
       length: TABLE_L,
       midX: startX + TABLE_W / 2,
       midY: startY + TABLE_L / 2,
-      net: {
-        x1: startX - 14,
-        x2: startX + TABLE_W + 14,
-        y: startY + TABLE_L / 2
-      }
+      net: { x1: startX - 14, x2: startX + TABLE_W + 14, y: startY + TABLE_L / 2 }
     };
   }
 
   /**
-   * Liefert den Punkt {x,y} für eine Position.
-   * @param {object} t      Tisch-Geometrie aus table()
-   * @param {string} side   'A' (vorne/unten) oder 'B' (hinten/oben)
-   * @param {string} pos    'VH' | 'RH' | 'Mitte'
-   * @param {boolean} short kurz (nahe Netz) statt lang (Grundlinie)
+   * @param {object} t     Tisch aus table()
+   * @param {string} side  'A' (unten) | 'B' (oben)
+   * @param {string} pos   VH|RH|Mitte|MitteVH|MitteRH|Ellbogen
+   * @param {string} depth kurz|halblang|lang
    */
-  function point(t, side, pos, short) {
-    var leftX = t.startX + INSET;
-    var rightX = t.startX + t.width - INSET;
-    var midX = t.midX;
-    var x;
+  function point(t, side, pos, depth) {
+    var lx = LX_A[pos];
+    if (lx == null) lx = 0.5;
+    if (side === 'B') lx = 1 - lx;
+    var x = t.startX + INSET + lx * (t.width - 2 * INSET);
 
-    if (side === 'A') {
-      x = pos === 'VH' ? rightX : pos === 'RH' ? leftX : midX;
-    } else {
-      x = pos === 'VH' ? leftX : pos === 'RH' ? rightX : midX;
-    }
-
-    var y;
-    if (side === 'A') {
-      y = short ? (t.midY + NET_OFFSET) : (t.startY + t.length - INSET);
-    } else {
-      y = short ? (t.midY - NET_OFFSET) : (t.startY + INSET);
-    }
+    var df = DEPTH[depth] != null ? DEPTH[depth] : DEPTH.lang;
+    var half = t.length / 2;
+    var y = side === 'A' ? (t.midY + df * half) : (t.midY - df * half);
 
     return { x: x, y: y };
   }
 
   TTV.geometry = {
-    TABLE_W: TABLE_W,
-    TABLE_L: TABLE_L,
-    MARGIN_X: MARGIN_X,
-    MARGIN_Y: MARGIN_Y,
-    layout: layout,
-    table: table,
-    point: point
+    TABLE_W: TABLE_W, TABLE_L: TABLE_L, MARGIN_X: MARGIN_X, MARGIN_Y: MARGIN_Y,
+    layout: layout, table: table, point: point,
+    POSITIONS: Object.keys(LX_A), DEPTHS: Object.keys(DEPTH)
   };
 })(window.TTV = window.TTV || {});
