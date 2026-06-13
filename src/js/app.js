@@ -69,12 +69,12 @@
       ]
     },
     {
-      // Spiel auf den Wechselpunkt (Ellbogen) und Block über den ganzen Tisch.
+      // Spiel auf den Wechselpunkt (Ellbogen); zum Schluss öffnet B über den ganzen Tisch.
       name: 'Wechselpunkt & ganzer Tisch',
       rows: [
         { a: 'RHK/RHT in RH', b: 'RHB in RH' },
-        { a: 'VHT aus VH in Ellbogen', b: 'Block in ganzer Tisch' },
-        { a: 'VHT aus RH diagonal', b: 'frei' }
+        { a: 'VHT aus VH in Ellbogen', b: 'RHB in RH' },
+        { a: 'VHT aus RH diagonal', b: 'Block in ganzer Tisch' }
       ]
     },
     {
