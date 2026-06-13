@@ -180,7 +180,7 @@
         // Balleimer: nur Spieler A. Das Zuspiel (gestrichelt) geht dorthin, wo A spielt.
         if (a && a.kind === 'stroke') {
           var aOrigin = geo.point(t, 'A', a.from.pos, a.from.depth);
-          var feedFrom = geo.point(t, 'B', 'Mitte', 'lang');
+          var feedFrom = geo.point(t, 'B', 'RH', 'halblang');
           svg.appendChild(arrowPath(feedFrom, aOrigin, 'feed', true));
         }
         if (a) drawShot(svg, t, a, opts);

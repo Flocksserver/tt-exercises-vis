@@ -8,7 +8,7 @@
  *   Frei | endlos
  *
  *   TECHNIK   = ein Wort, auch Alternative mit „/“ (VHT, RHK/RHT, Schupf, Aufschlag, AS)
- *   RICHTUNG  = diagonal | längs | parallel
+ *   RICHTUNG  = diagonal | parallel
  *   TIEFE     = kurz | halblang | lang
  *   POSITION  = VH | RH | Mitte | Mitte der VH | Mitte der RH | Ellbogen
  *               | VH-Bereich/RH-Bereich (… „-Bereich“ wird ignoriert)
@@ -34,7 +34,7 @@
   var LANG = /^(lang|lange|langer|langes|langen|langem)$/i;
   var HALBLANG = /^halblang(e|er|es|en|em)?$/i;
   var DIAGONAL = /^diagonal(e|er)?$/i;
-  var LAENGS = /^(l(ä|ae)ngs|parallel)$/i;
+  var PARALLEL = /^parallel(e|er)?$/i;
   var MAL = /^mal$/i;
   var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/]*[A-Za-zÄÖÜäöüß0-9])?$/;
 
@@ -105,7 +105,7 @@
     text.trim().split(/\s+/).forEach(function (tok) {
       if (!tok) return;
       if (DIAGONAL.test(tok)) { direction = 'diagonal'; return; }
-      if (LAENGS.test(tok)) { direction = 'laengs'; return; }
+      if (PARALLEL.test(tok)) { direction = 'parallel'; return; }
       var r = regularOf(tok);
       if (r) { regular = r; return; }
       coreTokens.push(tok);
@@ -172,7 +172,7 @@
 
     // 5) Plausibilität: ohne Ziel brauchen wir Richtung ODER „unregelmäßig“ (variabel)
     if (!target && !direction && regular !== 'unregelmaessig') {
-      return fail('Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„längs“) oder „unregelmäßig“.');
+      return fail('Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.');
     }
 
     // übrige Tokens werden tolerant ignoriert (Freitext-Zusätze in echten Mappen)
@@ -210,7 +210,7 @@
     if (stroke.strokeDepth && stroke.strokeDepth !== 'lang') parts.push(stroke.strokeDepth);
     parts.push(stroke.technik);
     if (stroke.direction === 'diagonal') parts.push('diag');
-    else if (stroke.direction === 'laengs') parts.push('längs');
+    else if (stroke.direction === 'parallel') parts.push('parallel');
     var tag = stroke.regular === 'unregelmaessig' ? 'unr' :
               stroke.regular === 'regelmaessig' ? 'reg' :
               stroke.regular === 'wechselnd' ? 'wechs' : '';
