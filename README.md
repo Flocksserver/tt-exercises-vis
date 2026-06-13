@@ -14,7 +14,7 @@ unregelmäßiger Platzierung und Zielbereichen. Die Grafik lässt sich als **PNG
 ## Notation
 
 Pro Tabellenzeile ein Ballwechsel-Schritt. **Spieler A** steht vorne, **Spieler B** hinten.
-Die Notation orientiert sich an den TTVN-CampMappen und ist bewusst tolerant.
+Die Notation lehnt sich an die übliche Trainings-Kurzschreibweise an und ist bewusst tolerant.
 
 ```
 [N mal] TECHNIK [Richtung] [aus [Tiefe] POSITION] in [Tiefe] ZIEL
@@ -28,11 +28,11 @@ ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 
 - **TECHNIK** – ein Wort; Varianten mit „/“ (`RHK/RHT`). Auch `Aufschlag`/`AS`.
 - **`aus …` ist optional.** Fehlt es, kommt der Ball vom letzten Landepunkt (Rally-Kette) –
-  genau wie die CampMappe es schreibt (`RHK/RHT in RH` → `RHB in RH` → …).
+  man gibt also nur das Ziel an (`RHK/RHT in RH` → `RHB in RH` → …).
 - **Richtung** statt fester Position: `VHT aus VH diagonal` leitet das Ziel selbst ab.
 - `Frei` beendet, `endlos` markiert eine Dauerübung.
-- **Multiball:** Schalter „Multiball (Zuspiel)“ macht Spieler B zum Zuspieler (Balleimer,
-  gestrichelte Zuspiel-Pfeile).
+- **Multiball:** Schalter „Multiball (Zuspiel)“ macht Spieler B zum Zuspieler
+  (gestrichelte Zuspiel-Pfeile in Grau).
 
 ### Beispiele
 
@@ -54,7 +54,6 @@ ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 - Gestrichelt = Alternative bei `oder`
 - Schattierte Fläche = Bereich (`bis`), `ganzer Tisch` oder `unregelmäßig`
 - Tiefe am Tisch: am Netz = **kurz**, Mitte = **halblang**, Grundlinie = **lang**
-- Korb-Symbol = Balleimer des Zuspielers (Multiball)
 
 ## Lokal starten
 

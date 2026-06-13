@@ -28,7 +28,7 @@ body {
 
 /* Header */
 .site-header {
-  background: linear-gradient(135deg, var(--green), var(--green-dark));
+  background: linear-gradient(135deg, #0f3b34 0%, #115e59 55%, #0d9488 100%);
   color: #fff;
   padding: 38px 0 30px;
 }

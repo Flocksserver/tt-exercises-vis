@@ -12,7 +12,7 @@
   var geo = TTV.geometry;
 
   var COLORS = { A: '#1d4ed8', B: '#c0233b', feed: '#6b7280' };
-  var CURVE = 16;
+  var OFFSET = 5;   // kleiner Parallel-Versatz, damit A/B bei gleicher Linie nicht überlappen
 
   function el(name, attrs) {
     var e = document.createElementNS(SVGNS, name);
@@ -64,29 +64,18 @@
     svg.appendChild(label(t.startX - 6, t.startY + 12, bTag, { anchor: 'end', size: 13, fill: bTag === 'Z' ? COLORS.feed : COLORS.B, halo: false }));
   }
 
-  function drawBasket(svg, t, feeder) {
-    var base = geo.point(t, feeder, 'Mitte', 'lang');
-    var y = feeder === 'A' ? base.y + 6 : base.y - 18;
-    var x = base.x + 24;
-    svg.appendChild(el('path', {
-      d: 'M' + (x - 7) + ',' + y + ' L' + (x + 7) + ',' + y + ' L' + (x + 5) + ',' + (y + 10) + ' L' + (x - 5) + ',' + (y + 10) + ' z',
-      fill: '#e5e7eb', stroke: COLORS.feed, 'stroke-width': 1
-    }));
-    [-3, 0, 3].forEach(function (dx) {
-      svg.appendChild(el('circle', { cx: x + dx, cy: y - 2, r: 1.8, fill: '#f59e0b' }));
-    });
-  }
-
   function arrowPath(from, to, player, dashed, colorKey) {
+    // gerade Linie; Spieler A/B leicht senkrecht versetzt (sonst exakte Überlagerung
+    // bei gleicher Linie). Versatz aus kanonischer Ausrichtung, damit beide parallel laufen.
     var flip = (to.y < from.y) || (to.y === from.y && to.x < from.x);
     var cdx = flip ? (from.x - to.x) : (to.x - from.x);
     var cdy = flip ? (from.y - to.y) : (to.y - from.y);
     var len = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
     var sign = player === 'A' ? 1 : -1;
-    var cx = (from.x + to.x) / 2 + (-cdy / len) * CURVE * sign;
-    var cy = (from.y + to.y) / 2 + (cdx / len) * CURVE * sign;
+    var px = (-cdy / len) * OFFSET * sign;
+    var py = (cdx / len) * OFFSET * sign;
     var attrs = {
-      d: 'M' + from.x + ',' + from.y + ' Q' + cx + ',' + cy + ' ' + to.x + ',' + to.y,
+      d: 'M' + (from.x + px) + ',' + (from.y + py) + ' L' + (to.x + px) + ',' + (to.y + py),
       fill: 'none', stroke: COLORS[colorKey], 'stroke-width': colorKey === 'feed' ? 2 : 3,
       'stroke-linecap': 'round', 'marker-end': 'url(#' + markerId(colorKey) + ')'
     };
@@ -109,7 +98,7 @@
   function drawShot(svg, t, rs, opts) {
     if (rs.kind === 'frei' || rs.kind === 'endlos') {
       var fy = rs.player === 'A' ? (t.startY + t.length - 30) : (t.startY + 30);
-      svg.appendChild(label(t.midX, fy, rs.kind === 'endlos' ? '∞ endlos' : 'frei', { size: 15, fill: '#333' }));
+      svg.appendChild(label(t.midX, fy, rs.kind === 'endlos' ? '∞ endlos' : 'frei', { size: 18, fill: '#333' }));
       return;
     }
     if (rs.kind !== 'stroke') return;
@@ -138,8 +127,8 @@
       svg.appendChild(arrowPath(from, to, player, ar.dashed || isFeed, colorKey));
     });
 
-    var ly = player === 'A' ? (from.y + 20) : (from.y - 12);
-    svg.appendChild(label(from.x, ly, rs.label, { size: 14, fill: COLORS[colorKey] }));
+    var ly = player === 'A' ? (from.y + 24) : (from.y - 14);
+    svg.appendChild(label(from.x, ly, rs.label, { size: 20, fill: COLORS[colorKey] }));
   }
 
   function render(rows, opts) {
@@ -159,7 +148,6 @@
     for (var i = 0; i < rows.length; i++) {
       var t = geo.table(i);
       drawTable(svg, t, opts);
-      if (opts.multiball) drawBasket(svg, t, opts.feeder);
       if (rows[i].a) drawShot(svg, t, rows[i].a, opts);
       if (rows[i].b) drawShot(svg, t, rows[i].b, opts);
     }

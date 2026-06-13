@@ -1,5 +1,5 @@
 /*
- * notation.js — Parser & Validator für die Übungs-Notation (CampMappe-kompatibel).
+ * notation.js — Parser & Validator für die Übungs-Notation.
  *
  * Erweiterte, tolerante Grammatik (alle Teile außer der Technik sind optional):
  *

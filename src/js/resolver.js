@@ -1,7 +1,7 @@
 /*
  * resolver.js — macht aus den (ggf. unvollständigen) Parser-Ergebnissen konkrete Schläge.
  *
- * Zwei Aufgaben, die echte CampMappe-Notation erst zeichenbar machen:
+ * Zwei Aufgaben, die die verkürzte Trainingsnotation erst zeichenbar machen:
  *  1) Ballverlauf-Kette: fehlt „aus …“, ist der Ursprung der letzte Landepunkt auf der
  *     eigenen Seite (in der Rally kommt der Ball von dort, wo der Vorschlag hinging).
  *  2) Richtung: fehlt das Ziel, wird es aus Ursprung + diagonal/längs abgeleitet.
