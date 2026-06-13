@@ -32,8 +32,9 @@
   }
 
   function resolveSequence(rows) {
-    var ballOnA = { pos: 'Mitte', depth: 'lang' };
-    var ballOnB = { pos: 'Mitte', depth: 'lang' };
+    // null = kein Ball auf dieser Seite im Spiel (noch kein Schlag dorthin)
+    var ballOnA = null;
+    var ballOnB = null;
 
     function resolveShot(parsed, player) {
       if (!parsed || parsed.type === 'empty') return null;
@@ -41,13 +42,16 @@
       if (parsed.type === 'endlos') return { kind: 'endlos', player: player };
       if (parsed.type !== 'stroke') return null;
 
-      // Ursprung: explizit „aus …" > Schlaghand der Technik > letzter Landepunkt (Ballverlauf)
+      // Ursprung: explizit „aus …" > Ballort (Ballverlauf-Kette) > Schlaghand (erster Schlag)
+      var incoming = player === 'A' ? ballOnA : ballOnB;
       var hand = handOf(parsed.technik);
       var from = parsed.from
         ? { pos: parsed.from.pos, depth: parsed.from.depth }
-        : hand
-          ? { pos: hand, depth: 'lang' }
-          : clone(player === 'A' ? ballOnA : ballOnB);
+        : incoming
+          ? clone(incoming)
+          : hand
+            ? { pos: hand, depth: 'lang' }
+            : { pos: 'Mitte', depth: 'lang' };
 
       var arrows = [], zone = null, variable = false;
       var tgt = parsed.target;
@@ -71,11 +75,14 @@
         }
       }
 
-      // primäres Ziel → neuer Ballort auf der Gegenseite
+      // Ball verlässt die eigene Seite; Gegenseite bekommt das primäre Ziel.
       var primary = arrows.length ? arrows[0].to : (zone ? { pos: 'Mitte', depth: zone.from.depth || 'lang' } : null);
-      if (primary) {
-        if (player === 'A') ballOnB = { pos: primary.pos, depth: primary.depth };
-        else ballOnA = { pos: primary.pos, depth: primary.depth };
+      if (player === 'A') {
+        ballOnA = null;
+        if (primary) ballOnB = { pos: primary.pos, depth: primary.depth };
+      } else {
+        ballOnB = null;
+        if (primary) ballOnA = { pos: primary.pos, depth: primary.depth };
       }
 
       return {

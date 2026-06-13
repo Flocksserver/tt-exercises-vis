@@ -13,26 +13,36 @@
     { a: 'RHT aus RH in VH', b: 'frei' }
   ];
 
-  // Spielnahe, real trainierbare Übungen.
+  // Spielnahe, real trainierbare Übungen (aus typischen Trainingsformen abgeleitet).
   var EXAMPLES = [
     {
-      // Klassischer Rückhand-Konter diagonal, endlos gespielt.
+      // Rückhand-Konter diagonal, endlos – beide aus RH in RH.
       name: 'RH-Konter (endlos)',
       rows: [
-        { a: 'RHK in RH', b: 'RHK in RH' },
+        { a: 'RHK/RHT aus RH in RH', b: 'RHK/RHB aus RH in RH' },
         { a: 'endlos', b: '' }
       ]
     },
     {
-      // Vorhand-Topspin diagonal gegen Block – Dauerübung.
-      name: 'Topspin diagonal vs. Block',
+      // Beinarbeit: A zieht aus RH/VH, B blockt wechselnd.
+      name: 'Block-Wechsel (Beinarbeit)',
       rows: [
-        { a: 'VHT aus VH diagonal', b: 'Block in VH' },
-        { a: 'endlos', b: '' }
+        { a: 'RHT aus RH in VH', b: 'VHB in RH' },
+        { a: 'VHT aus VH in Mitte', b: 'VHB in VH' },
+        { a: 'VHT aus VH in RH', b: 'frei' }
       ]
     },
     {
-      // Verkürzte Schreibweise ohne „aus“ – Ursprung aus Schlaghand/Ballverlauf.
+      // Richtung: diagonal und längs (parallel) im Wechsel.
+      name: 'Diagonal & Längs',
+      rows: [
+        { a: 'RHK/RHT diagonal', b: 'RHK/RHB in RH' },
+        { a: 'RHK/RHT parallel', b: 'VHK/VHB in VH' },
+        { a: 'VHT diagonal', b: 'frei' }
+      ]
+    },
+    {
+      // Verkürzte Schreibweise ohne „aus“ – Ursprung aus dem Ballverlauf.
       name: 'Ohne „aus“ (Ballverlauf)',
       rows: [
         { a: 'RHK/RHT in RH', b: 'RHB in RH' },
@@ -41,37 +51,38 @@
       ]
     },
     {
-      // Umlaufen/Falkenberg: RH, dann VH aus der RH-Ecke längs, dann VH diagonal.
-      name: 'Umlaufen (Falkenberg)',
+      // VH-Beinarbeit aus Mitte und VH, Abschluss in die RH.
+      name: 'VH-Beinarbeit (Mitte↔VH)',
       rows: [
-        { a: 'RHT aus RH in RH', b: 'Block in RH' },
-        { a: 'VHT aus RH längs', b: 'Block in VH' },
+        { a: 'VHT aus Mitte in VH', b: 'VHB aus VH in Mitte' },
+        { a: 'VHT aus VH in VH', b: 'VHB aus VH in VH' },
+        { a: 'VHT aus Mitte in RH', b: 'frei' }
+      ]
+    },
+    {
+      // Kurzes Spiel: Aufschlag, Schupf, Flip – Übergang ins Topspinspiel.
+      name: 'Kurzes Spiel → Eröffnung',
+      rows: [
+        { a: 'kurzer Aufschlag in kurze VH', b: 'Schupf in kurze RH' },
+        { a: 'Schupf in kurze RH', b: 'Flip in halblang VH' },
         { a: 'VHT aus VH diagonal', b: 'frei' }
       ]
     },
     {
-      // Kurzes Spiel mit Aufschlag, Schupf, Flip – Übergang ins Topspinspiel.
-      name: 'Kurzes Spiel → Eröffnung',
+      // Spiel auf den Wechselpunkt (Ellbogen) und Block über den ganzen Tisch.
+      name: 'Wechselpunkt & ganzer Tisch',
       rows: [
-        { a: 'kurzer Aufschlag in kurze RH', b: 'Schupf in kurze RH' },
-        { a: 'Schupf in kurze Mitte', b: 'Flip in halblang VH' },
-        { a: 'VHT in VH', b: 'frei' }
+        { a: 'RHK/RHT in RH', b: 'RHB in RH' },
+        { a: 'VHT aus VH in Ellbogen', b: 'Block in ganzer Tisch' },
+        { a: 'VHT aus RH diagonal', b: 'frei' }
       ]
     },
     {
-      // Variable Platzierung: Alternativen (oder), Variabilität (unregelmäßig), Bereich (bis).
-      name: 'Variable Platzierung',
+      // Wiederholung (2-3×), Alternativen (oder), Bereich (bis), variabel (unregelmäßig).
+      name: 'Variabel & Wiederholung',
       rows: [
-        { a: 'VHT aus VH in Mitte oder RH', b: 'Block unregelmäßig' },
-        { a: 'VHT aus RH in VH bis Mitte', b: 'frei' }
-      ]
-    },
-    {
-      // 2-3 Mal diagonal, dann Wechsel längs.
-      name: 'Wiederholung (2-3×)',
-      rows: [
-        { a: '2-3 mal VHT aus VH diagonal', b: 'Block in VH' },
-        { a: 'VHT aus RH längs', b: 'frei' }
+        { a: '2-3 mal VHT aus VH diagonal', b: 'Block in VH oder RH' },
+        { a: 'VHT aus RH in VH bis Mitte', b: 'Block unregelmäßig' }
       ]
     },
     {
