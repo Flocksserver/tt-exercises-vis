@@ -170,9 +170,9 @@
       }
     }
 
-    // 5) Plausibilität: ohne Ziel brauchen wir wenigstens eine Richtung
-    if (!target && !direction) {
-      return fail('Es fehlt das Ziel: „… in VH“ oder eine Richtung („diagonal“/„längs“).');
+    // 5) Plausibilität: ohne Ziel brauchen wir Richtung ODER „unregelmäßig“ (variabel)
+    if (!target && !direction && regular !== 'unregelmaessig') {
+      return fail('Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„längs“) oder „unregelmäßig“.');
     }
 
     // übrige Tokens werden tolerant ignoriert (Freitext-Zusätze in echten Mappen)
