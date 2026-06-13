@@ -12,7 +12,7 @@
   var geo = TTV.geometry;
 
   var COLORS = { A: '#1d4ed8', B: '#c0233b', feed: '#6b7280' };
-  var OFFSET = 5;   // kleiner Parallel-Versatz, damit A/B bei gleicher Linie nicht überlappen
+  var gradSeq = 0;
 
   function el(name, attrs) {
     var e = document.createElementNS(SVGNS, name);
@@ -27,7 +27,7 @@
     Object.keys(COLORS).forEach(function (key) {
       var m = el('marker', {
         id: markerId(key), markerWidth: 8, markerHeight: 8,
-        viewBox: '0 0 10 10', refX: 8, refY: 5, orient: 'auto', markerUnits: 'userSpaceOnUse'
+        viewBox: '0 0 10 10', refX: 8, refY: 5, orient: 'auto-start-reverse', markerUnits: 'userSpaceOnUse'
       });
       m.appendChild(el('path', { d: 'M0,0 L10,5 L0,10 z', fill: COLORS[key] }));
       defs.appendChild(m);
@@ -64,23 +64,37 @@
     svg.appendChild(label(t.startX - 6, t.startY + 12, bTag, { anchor: 'end', size: 13, fill: bTag === 'Z' ? COLORS.feed : COLORS.B, halo: false }));
   }
 
-  function arrowPath(from, to, player, dashed, colorKey) {
-    // gerade Linie; Spieler A/B leicht senkrecht versetzt (sonst exakte Überlagerung
-    // bei gleicher Linie). Versatz aus kanonischer Ausrichtung, damit beide parallel laufen.
-    var flip = (to.y < from.y) || (to.y === from.y && to.x < from.x);
-    var cdx = flip ? (from.x - to.x) : (to.x - from.x);
-    var cdy = flip ? (from.y - to.y) : (to.y - from.y);
-    var len = Math.sqrt(cdx * cdx + cdy * cdy) || 1;
-    var sign = player === 'A' ? 1 : -1;
-    var px = (-cdy / len) * OFFSET * sign;
-    var py = (cdx / len) * OFFSET * sign;
+  function arrowPath(from, to, colorKey, dashed) {
+    // gerade Linie mit Pfeilspitze am Ziel
     var attrs = {
-      d: 'M' + (from.x + px) + ',' + (from.y + py) + ' L' + (to.x + px) + ',' + (to.y + py),
+      d: 'M' + from.x + ',' + from.y + ' L' + to.x + ',' + to.y,
       fill: 'none', stroke: COLORS[colorKey], 'stroke-width': colorKey === 'feed' ? 2 : 3,
       'stroke-linecap': 'round', 'marker-end': 'url(#' + markerId(colorKey) + ')'
     };
     if (dashed) attrs['stroke-dasharray'] = '6 5';
     return el('path', attrs);
+  }
+
+  function samePD(a, b) { return a && b && a.pos === b.pos && a.depth === b.depth; }
+
+  // Eine Linie mit zwei Pfeilspitzen für gleiche Strecke hin & zurück (z. B. RH gegen RH).
+  // Blau→Rot-Verlauf mit Wechsel am Netz, je Seite die Farbe des Spielers.
+  function drawDoubleArrow(svg, pA, pB) {
+    var id = 'grad' + (gradSeq++);
+    var grad = el('linearGradient', {
+      id: id, gradientUnits: 'userSpaceOnUse',
+      x1: pA.x, y1: pA.y, x2: pB.x, y2: pB.y
+    });
+    [[0, COLORS.A], [0.48, COLORS.A], [0.52, COLORS.B], [1, COLORS.B]].forEach(function (s) {
+      grad.appendChild(el('stop', { offset: s[0], 'stop-color': s[1] }));
+    });
+    svg.appendChild(grad);
+    svg.appendChild(el('path', {
+      d: 'M' + pA.x + ',' + pA.y + ' L' + pB.x + ',' + pB.y,
+      fill: 'none', stroke: 'url(#' + id + ')', 'stroke-width': 3, 'stroke-linecap': 'round',
+      'marker-start': 'url(#' + markerId('A') + ')',   // Pfeilspitze unten (zu A), blau
+      'marker-end': 'url(#' + markerId('B') + ')'       // Pfeilspitze oben (zu B), rot
+    }));
   }
 
   function drawZone(svg, from, e1, e2, colorKey, faint) {
@@ -95,7 +109,7 @@
     }));
   }
 
-  function drawShot(svg, t, rs, opts) {
+  function drawShot(svg, t, rs, opts, labelOnly) {
     if (rs.kind === 'frei' || rs.kind === 'endlos') {
       var fy = rs.player === 'A' ? (t.startY + t.length - 30) : (t.startY + 30);
       svg.appendChild(label(t.midX, fy, rs.kind === 'endlos' ? '∞ endlos' : 'frei', { size: 18, fill: '#333' }));
@@ -109,27 +123,37 @@
     var colorKey = isFeed ? 'feed' : player;
     var from = geo.point(t, player, rs.from.pos, rs.from.depth);
 
-    // Variabilitäts-Band (unregelmäßig mit explizitem Ziel)
-    if (rs.variable && !rs.zone) {
-      var v1 = geo.point(t, opp, 'VH', 'lang'), v2 = geo.point(t, opp, 'RH', 'lang');
-      drawZone(svg, from, v1, v2, colorKey, true);
+    if (!labelOnly) {
+      // Variabilitäts-Band (unregelmäßig mit explizitem Ziel)
+      if (rs.variable && !rs.zone) {
+        var v1 = geo.point(t, opp, 'VH', 'lang'), v2 = geo.point(t, opp, 'RH', 'lang');
+        drawZone(svg, from, v1, v2, colorKey, true);
+      }
+      if (rs.zone) {
+        var z1 = geo.point(t, opp, rs.zone.from.pos, rs.zone.from.depth);
+        var z2 = geo.point(t, opp, rs.zone.to.pos, rs.zone.to.depth);
+        drawZone(svg, from, z1, z2, colorKey, rs.variable);
+        svg.appendChild(arrowPath(from, { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 }, colorKey, isFeed));
+      }
+      rs.arrows.forEach(function (ar) {
+        var to = geo.point(t, opp, ar.to.pos, ar.to.depth);
+        svg.appendChild(arrowPath(from, to, colorKey, ar.dashed || isFeed));
+      });
     }
-
-    if (rs.zone) {
-      var z1 = geo.point(t, opp, rs.zone.from.pos, rs.zone.from.depth);
-      var z2 = geo.point(t, opp, rs.zone.to.pos, rs.zone.to.depth);
-      drawZone(svg, from, z1, z2, colorKey, rs.variable);
-      svg.appendChild(arrowPath(from, { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 }, player, isFeed, colorKey));
-    }
-
-    rs.arrows.forEach(function (ar) {
-      var to = geo.point(t, opp, ar.to.pos, ar.to.depth);
-      svg.appendChild(arrowPath(from, to, player, ar.dashed || isFeed, colorKey));
-    });
 
     // Label in den Rand außerhalb des Tischs setzen (A unten, B oben) – nicht am Ball kleben.
     var ly = player === 'A' ? (t.startY + t.length + 26) : (t.startY - 14);
     svg.appendChild(label(from.x, ly, rs.label, { size: 20, fill: COLORS[colorKey] }));
+  }
+
+  // Beide Schläge sind dieselbe Strecke hin & zurück (einfache, gerade Pfeile, kein Zuspiel)?
+  function isSameSegment(a, b, opts) {
+    if (opts.multiball) return false;
+    if (!a || !b || a.kind !== 'stroke' || b.kind !== 'stroke') return false;
+    if (a.zone || b.zone || a.variable || b.variable) return false;
+    if (a.arrows.length !== 1 || b.arrows.length !== 1) return false;
+    if (a.arrows[0].dashed || b.arrows[0].dashed) return false;
+    return samePD(a.from, b.arrows[0].to) && samePD(a.arrows[0].to, b.from);
   }
 
   function render(rows, opts) {
@@ -149,8 +173,18 @@
     for (var i = 0; i < rows.length; i++) {
       var t = geo.table(i);
       drawTable(svg, t, opts);
-      if (rows[i].a) drawShot(svg, t, rows[i].a, opts);
-      if (rows[i].b) drawShot(svg, t, rows[i].b, opts);
+      var a = rows[i].a, b = rows[i].b;
+      if (isSameSegment(a, b, opts)) {
+        // gleiche Strecke hin & zurück -> EINE Linie mit zwei Pfeilspitzen
+        var pA = geo.point(t, 'A', a.from.pos, a.from.depth);
+        var pB = geo.point(t, 'B', a.arrows[0].to.pos, a.arrows[0].to.depth);
+        drawDoubleArrow(svg, pA, pB);
+        drawShot(svg, t, a, opts, true);
+        drawShot(svg, t, b, opts, true);
+      } else {
+        if (a) drawShot(svg, t, a, opts);
+        if (b) drawShot(svg, t, b, opts);
+      }
     }
     return svg;
   }
