@@ -78,22 +78,23 @@
   function samePD(a, b) { return a && b && a.pos === b.pos && a.depth === b.depth; }
 
   // Eine Linie mit zwei Pfeilspitzen für gleiche Strecke hin & zurück (z. B. RH gegen RH).
-  // Blau→Rot-Verlauf mit Wechsel am Netz, je Seite die Farbe des Spielers.
+  // Farbe nach Ballhälfte: A's Schlag (blau) erreicht B's Seite (oben), B's Schlag (rot)
+  // erreicht A's Seite (unten). Wechsel am Netz. pA = A-Seite (unten), pB = B-Seite (oben).
   function drawDoubleArrow(svg, pA, pB) {
     var id = 'grad' + (gradSeq++);
     var grad = el('linearGradient', {
       id: id, gradientUnits: 'userSpaceOnUse',
       x1: pA.x, y1: pA.y, x2: pB.x, y2: pB.y
     });
-    [[0, COLORS.A], [0.48, COLORS.A], [0.52, COLORS.B], [1, COLORS.B]].forEach(function (s) {
+    [[0, COLORS.B], [0.48, COLORS.B], [0.52, COLORS.A], [1, COLORS.A]].forEach(function (s) {
       grad.appendChild(el('stop', { offset: s[0], 'stop-color': s[1] }));
     });
     svg.appendChild(grad);
     svg.appendChild(el('path', {
       d: 'M' + pA.x + ',' + pA.y + ' L' + pB.x + ',' + pB.y,
       fill: 'none', stroke: 'url(#' + id + ')', 'stroke-width': 3, 'stroke-linecap': 'round',
-      'marker-start': 'url(#' + markerId('A') + ')',   // Pfeilspitze unten (zu A), blau
-      'marker-end': 'url(#' + markerId('B') + ')'       // Pfeilspitze oben (zu B), rot
+      'marker-start': 'url(#' + markerId('B') + ')',   // Pfeilspitze unten (B's Ball zu A), rot
+      'marker-end': 'url(#' + markerId('A') + ')'       // Pfeilspitze oben (A's Ball zu B), blau
     }));
   }
 

@@ -16,6 +16,14 @@
 
   function clone(p) { return { pos: p.pos, depth: p.depth }; }
 
+  // Schlaghand aus der Technik (RH*/VH*) -> natürliche Ursprungsseite, wenn „aus …" fehlt.
+  function handOf(technik) {
+    var t = (technik || '').split('/')[0].toUpperCase();
+    if (t.indexOf('VH') === 0) return 'VH';
+    if (t.indexOf('RH') === 0) return 'RH';
+    return null;
+  }
+
   // Ziel aus Ursprung + Richtung ableiten (Spieler stehen sich gegenüber).
   function deriveTarget(pos, dir) {
     if (dir === 'diagonal') return pos;            // VH→VH, RH→RH (kreuzt optisch)
@@ -33,9 +41,13 @@
       if (parsed.type === 'endlos') return { kind: 'endlos', player: player };
       if (parsed.type !== 'stroke') return null;
 
+      // Ursprung: explizit „aus …" > Schlaghand der Technik > letzter Landepunkt (Ballverlauf)
+      var hand = handOf(parsed.technik);
       var from = parsed.from
         ? { pos: parsed.from.pos, depth: parsed.from.depth }
-        : clone(player === 'A' ? ballOnA : ballOnB);
+        : hand
+          ? { pos: hand, depth: 'lang' }
+          : clone(player === 'A' ? ballOnA : ballOnB);
 
       var arrows = [], zone = null, variable = false;
       var tgt = parsed.target;

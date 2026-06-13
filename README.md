@@ -45,7 +45,7 @@ ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 | `Flip in halblang RH` | Flip, der halblang (mittlere Tiefe) in die RH gespielt wird |
 | `VHT in Mitte oder RH` | unregelmäßig: Ziel Mitte **oder** RH (gestrichelt) |
 | `VHT in VH bis Mitte` | Zielbereich zwischen Vorhand und Mitte (schattiert) |
-| `Block unregelmäßig in VH` | Block, variabel platziert (Variabilitäts-Band) |
+| `Block unregelmäßig` | Block variabel auf den ganzen Tisch (Variabilitäts-Band) |
 | `2-3 mal RHT in RH` | Schritt 2- bis 3-mal wiederholen |
 
 ## Grafik-Legende
