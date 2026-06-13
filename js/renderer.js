@@ -127,7 +127,8 @@
       svg.appendChild(arrowPath(from, to, player, ar.dashed || isFeed, colorKey));
     });
 
-    var ly = player === 'A' ? (from.y + 24) : (from.y - 14);
+    // Label in den Rand außerhalb des Tischs setzen (A unten, B oben) – nicht am Ball kleben.
+    var ly = player === 'A' ? (t.startY + t.length + 26) : (t.startY - 14);
     svg.appendChild(label(from.x, ly, rs.label, { size: 20, fill: COLORS[colorKey] }));
   }
 
