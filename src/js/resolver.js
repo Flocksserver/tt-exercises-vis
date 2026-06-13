@@ -4,7 +4,7 @@
  * Zwei Aufgaben, die die verkürzte Trainingsnotation erst zeichenbar machen:
  *  1) Ballverlauf-Kette: fehlt „aus …“, ist der Ursprung der letzte Landepunkt auf der
  *     eigenen Seite (in der Rally kommt der Ball von dort, wo der Vorschlag hinging).
- *  2) Richtung: fehlt das Ziel, wird es aus Ursprung + diagonal/längs abgeleitet.
+ *  2) Richtung: fehlt das Ziel, wird es aus Ursprung + diagonal/parallel abgeleitet.
  *
  * resolveSequence(rows) -> [{ a: rstroke|marker|null, b: rstroke|marker|null }]
  *   rstroke = { kind:'stroke', player, label, from:{pos,depth},
@@ -27,8 +27,8 @@
   // Ziel aus Ursprung + Richtung ableiten (Spieler stehen sich gegenüber).
   function deriveTarget(pos, dir) {
     if (dir === 'diagonal') return pos;            // VH→VH, RH→RH (kreuzt optisch)
-    var laengs = { VH: 'RH', RH: 'VH', MitteVH: 'MitteRH', MitteRH: 'MitteVH', Ellbogen: 'MitteVH', Mitte: 'Mitte' };
-    return laengs[pos] || pos;                      // längs / parallel
+    var parallel = { VH: 'RH', RH: 'VH', MitteVH: 'MitteRH', MitteRH: 'MitteVH', Ellbogen: 'MitteVH', Mitte: 'Mitte' };
+    return parallel[pos] || pos;                    // parallel (längs)
   }
 
   function resolveSequence(rows) {

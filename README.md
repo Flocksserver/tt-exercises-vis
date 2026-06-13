@@ -20,7 +20,7 @@ Die Notation lehnt sich an die übliche Trainings-Kurzschreibweise an und ist be
 [N mal] TECHNIK [Richtung] [aus [Tiefe] POSITION] in [Tiefe] ZIEL
 Frei | endlos
 
-Richtung = diagonal | längs | parallel
+Richtung = diagonal | parallel
 Tiefe    = kurz | halblang | lang
 POSITION = VH | RH | Mitte | Mitte der VH | Mitte der RH | Ellbogen | ganzer Tisch
 ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION

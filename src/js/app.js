@@ -33,8 +33,8 @@
       ]
     },
     {
-      // Richtung: diagonal und längs (parallel) im Wechsel.
-      name: 'Diagonal & Längs',
+      // Richtung: diagonal und parallel im Wechsel.
+      name: 'Diagonal & Parallel',
       rows: [
         { a: 'RHK/RHT diagonal', b: 'RHK/RHB in RH' },
         { a: 'RHK/RHT parallel', b: 'VHK/VHB in VH' },
@@ -92,7 +92,7 @@
       rows: [
         { a: 'VHT aus VH diagonal', b: '' },
         { a: 'VHT aus Mitte in VH', b: '' },
-        { a: 'VHT aus RH längs', b: '' }
+        { a: 'VHT aus RH parallel', b: '' }
       ]
     }
   ];
