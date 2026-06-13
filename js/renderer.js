@@ -175,6 +175,18 @@
       var t = geo.table(i);
       drawTable(svg, t, opts);
       var a = rows[i].a, b = rows[i].b;
+
+      if (opts.multiball) {
+        // Balleimer: nur Spieler A. Das Zuspiel (gestrichelt) geht dorthin, wo A spielt.
+        if (a && a.kind === 'stroke') {
+          var aOrigin = geo.point(t, 'A', a.from.pos, a.from.depth);
+          var feedFrom = geo.point(t, 'B', 'Mitte', 'lang');
+          svg.appendChild(arrowPath(feedFrom, aOrigin, 'feed', true));
+        }
+        if (a) drawShot(svg, t, a, opts);
+        continue;
+      }
+
       if (isSameSegment(a, b, opts)) {
         // gleiche Strecke hin & zurück -> EINE Linie mit zwei Pfeilspitzen
         var pA = geo.point(t, 'A', a.from.pos, a.from.depth);
