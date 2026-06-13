@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tischtennis-Übungsdesign-Visualisierer</title>
+  <meta name="description" content="Tischtennis-Übungen aus einfacher Textnotation als Tisch-Grafik visualisieren – Ballwege, kurze Bälle, unregelmäßige Platzierung und Bereiche. Export als PNG oder SVG." />
+  <meta name="author" content="Marcel Kaufmann" />
+  <meta property="og:title" content="Tischtennis-Übungsdesign-Visualisierer" />
+  <meta property="og:description" content="Tischtennis-Übungen aus Textnotation als Grafik visualisieren." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>🏓 Tischtennis-Übungsdesign-Visualisierer</h1>
+      <p class="tagline">Übungen aus einfacher Textnotation als Tisch-Grafik zeichnen – und als PNG oder SVG exportieren.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Werkzeug -->
+    <section class="card" aria-labelledby="tool-title">
+      <h2 id="tool-title">Übung erstellen</h2>
+      <p class="muted">
+        Jede Zeile ist ein Ballwechsel-Schritt. <strong>Spieler A</strong> steht vorne,
+        <strong>Spieler B</strong> hinten. Schreibe pro Feld z. B. <code>VHT aus VH in Mitte</code>.
+        Mit <code>Frei</code> endet die Rally.
+      </p>
+
+      <div class="examples-bar">
+        <span class="examples-label">Beispiele:</span>
+        <div id="examples" class="examples"></div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="input-table">
+          <thead>
+            <tr>
+              <th class="row-num">#</th>
+              <th>Spieler A <span class="muted">(vorne)</span></th>
+              <th>Spieler B <span class="muted">(hinten)</span></th>
+              <th class="row-actions" aria-label="Aktionen"></th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" id="addRow" class="btn">+ Zeile</button>
+        <button type="button" id="btnReset" class="btn">Zurücksetzen</button>
+        <span class="spacer"></span>
+        <button type="button" id="btnPng" class="btn btn-primary">PNG exportieren</button>
+        <button type="button" id="btnSvg" class="btn">SVG exportieren</button>
+      </div>
+
+      <div id="svgContainer" class="svg-container" aria-live="polite"></div>
+    </section>
+
+    <!-- Notation / Legende -->
+    <section class="card" aria-labelledby="legend-title">
+      <h2 id="legend-title">Notation &amp; Legende</h2>
+
+      <div class="legend-grid">
+        <div>
+          <h3>Grundmuster</h3>
+          <p class="syntax"><code>[N&nbsp;mal] [kurzer] <b>TECHNIK</b> aus [kurze] <b>POSITION</b> in [kurze] <b>POSITION</b></code></p>
+          <ul class="legend-list">
+            <li><b>TECHNIK</b> – ein Wort, frei wählbar (z. B. <code>VHT</code>, <code>RHB</code>, <code>Schupf</code>).</li>
+            <li><b>POSITION</b> – <code>VH</code>, <code>RH</code> oder <code>Mitte</code>.</li>
+            <li><code>aus</code> = Startposition, <code>in</code> = Zielposition.</li>
+            <li><code>Frei</code> – freier Ball, beendet die Rally (nur sinnvoll für Spieler B).</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Erweiterungen</h3>
+          <ul class="legend-list">
+            <li><b>Kurz:</b> <code>kurzer VHB aus VH in kurze Mitte</code> – Ball landet kurz am Netz.</li>
+            <li><b>Unregelmäßig:</b> <code>VHT aus VH in Mitte oder RH</code> – mehrere mögliche Ziele (gestrichelt).</li>
+            <li><b>Bereich:</b> <code>VHT aus VH in VH bis Mitte</code> – Zielzone zwischen zwei Positionen.</li>
+            <li><b>Wiederholung:</b> <code>2-3 mal RHT aus RH in RH</code> – Schritt mehrfach.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Grafik</h3>
+          <ul class="legend-list">
+            <li><span class="swatch swatch-a"></span> Pfeil = Schlag von <b>Spieler A</b>.</li>
+            <li><span class="swatch swatch-b"></span> Pfeil = Schlag von <b>Spieler B</b>.</li>
+            <li>Gestrichelt = Alternative bei <code>oder</code>.</li>
+            <li>Schattierte Fläche = Bereich bei <code>bis</code>.</li>
+            <li>Position nahe der grauen Netzlinie = <b>kurz</b>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p>
+        © <span id="year">2026</span> Marcel Kaufmann · MIT-Lizenz · frei für jeden Zweck nutzbar.
+        <a href="https://github.com/Flocksserver/tt-exercises-vis">Quellcode auf GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="js/notation.js"></script>
+  <script src="js/geometry.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
