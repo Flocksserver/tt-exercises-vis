@@ -4,7 +4,7 @@
 (function (TTV) {
   'use strict';
 
-  var MAX_ROWS = 8;
+  var MAX_ROWS = 10;
   var MIN_ROWS = 1;
 
   var DEFAULT_ROWS = [
@@ -23,34 +23,60 @@
       ]
     },
     {
-      name: 'Kurze Bälle',
+      name: 'CampMappe (ohne „aus“)',
       rows: [
-        { a: 'kurzer VHB aus VH in kurze Mitte', b: 'kurzer RHB aus Mitte in kurze RH' },
-        { a: 'VHT aus RH in VH', b: 'Frei' }
+        { a: 'RHK/RHT in RH', b: 'RHB in RH' },
+        { a: 'RHK/RHT in RH', b: 'RHB in Mitte der VH' },
+        { a: 'VHT in RH', b: 'frei' }
       ]
     },
     {
-      name: 'Unregelmäßig (oder)',
+      name: 'Diagonal / Längs',
       rows: [
-        { a: 'VHT aus VH in Mitte oder RH', b: 'Frei' }
+        { a: 'VHT aus VH diagonal', b: 'Block in Mitte' },
+        { a: 'VHT aus RH längs', b: 'frei' }
       ]
     },
     {
-      name: 'Bereich (bis)',
+      name: 'Tiefen: kurz/halblang/lang',
       rows: [
-        { a: 'VHT aus VH in VH bis Mitte', b: 'Frei' }
+        { a: 'kurzer VHB aus VH in kurze Mitte', b: 'Flip in halblang RH' },
+        { a: 'VHT in lang VH', b: 'frei' }
+      ]
+    },
+    {
+      name: 'Unregelmäßig & ganzer Tisch',
+      rows: [
+        { a: 'VHT aus VH in Mitte oder RH', b: 'Block unregelmäßig in VH' },
+        { a: 'VHT in ganzer Tisch', b: 'frei' }
+      ]
+    },
+    {
+      name: 'Aufschlag & Rückschlag',
+      rows: [
+        { a: 'kurzer Aufschlag in kurze RH', b: 'Schupf in RH' },
+        { a: 'VHT aus VH diagonal', b: 'frei' }
       ]
     },
     {
       name: 'Wiederholung',
       rows: [
-        { a: '2-3 mal RHT aus RH in RH', b: '2-3 mal RHB aus RH in RH' },
-        { a: 'VHT aus RH in VH', b: 'Frei' }
+        { a: '2-3 mal RHT in RH', b: '2-3 mal RHB in RH' },
+        { a: 'VHT aus RH in VH', b: 'frei' }
+      ]
+    },
+    {
+      name: 'Multiball (Zuspiel)',
+      multiball: true,
+      rows: [
+        { a: 'VHT in VH', b: 'Zuspiel in VH' },
+        { a: 'VHT in Mitte', b: 'Zuspiel in Mitte' },
+        { a: 'VHT in RH', b: 'Zuspiel in RH' }
       ]
     }
   ];
 
-  var state = [];           // [{a, b}]
+  var state = [];
   var renderTimer = null;
   var dom = {};
 
@@ -59,39 +85,35 @@
     renderTimer = setTimeout(renderNow, 180);
   }
 
-  function buildUebung() {
-    var uebung = [];
+  function buildParsedRows() {
+    var rows = [];
     state.forEach(function (row) {
       var pa = TTV.notation.parseCell(row.a);
       var pb = TTV.notation.parseCell(row.b);
-      var hasContent = pa.type !== 'empty' || pb.type !== 'empty';
-      if (!hasContent) return;
-      uebung.push({
-        a: (pa.type === 'stroke' || pa.type === 'frei') ? pa : null,
-        b: (pb.type === 'stroke' || pb.type === 'frei') ? pb : null
-      });
+      if (pa.type === 'empty' && pb.type === 'empty') return;
+      rows.push({ a: pa, b: pb });
     });
-    return uebung;
+    return rows;
   }
 
   function renderNow() {
-    var uebung = buildUebung();
+    var parsedRows = buildParsedRows();
     dom.svgContainer.innerHTML = '';
-    if (uebung.length === 0) {
+    if (parsedRows.length === 0) {
       var hint = document.createElement('p');
       hint.className = 'svg-empty';
       hint.textContent = 'Trage oben eine Übung ein – die Visualisierung erscheint hier.';
       dom.svgContainer.appendChild(hint);
       return;
     }
-    dom.svgContainer.appendChild(TTV.renderer.render(uebung));
+    var resolved = TTV.resolver.resolveSequence(parsedRows);
+    var opts = { multiball: dom.multiball.checked, feeder: 'B' };
+    dom.svgContainer.appendChild(TTV.renderer.render(resolved, opts));
   }
 
-  function currentSvg() {
-    return dom.svgContainer.querySelector('svg');
-  }
+  function currentSvg() { return dom.svgContainer.querySelector('svg'); }
 
-  // --- Eingabe-Tabelle aufbauen ----------------------------------------
+  // --- Eingabe-Tabelle --------------------------------------------------
 
   function makeCell(rowIndex, key) {
     var wrap = document.createElement('td');
@@ -107,20 +129,14 @@
     err.className = 'cell-error';
     err.setAttribute('aria-live', 'polite');
 
-    function onInput() {
+    input.addEventListener('input', function () {
       state[rowIndex][key] = input.value;
       var res = TTV.notation.validateCell(input.value);
-      if (res.valid) {
-        input.classList.remove('invalid');
-        err.textContent = '';
-      } else {
-        input.classList.add('invalid');
-        err.textContent = res.message;
-      }
+      if (res.valid) { input.classList.remove('invalid'); err.textContent = ''; }
+      else { input.classList.add('invalid'); err.textContent = res.message; }
       debouncedRender();
-    }
+    });
 
-    input.addEventListener('input', onInput);
     wrap.appendChild(input);
     wrap.appendChild(err);
     return wrap;
@@ -155,13 +171,11 @@
       dom.rowsBody.appendChild(tr);
     });
     dom.addRow.disabled = state.length >= MAX_ROWS;
-    // bereits vorhandene Eingaben validieren
     revalidateAll();
   }
 
   function revalidateAll() {
-    var inputs = dom.rowsBody.querySelectorAll('.cell-input');
-    inputs.forEach(function (input) {
+    dom.rowsBody.querySelectorAll('.cell-input').forEach(function (input) {
       var res = TTV.notation.validateCell(input.value);
       var err = input.parentNode.querySelector('.cell-error');
       if (res.valid) { input.classList.remove('invalid'); err.textContent = ''; }
@@ -182,11 +196,20 @@
     renderNow();
   }
 
-  function loadRows(rows) {
+  function loadRows(rows, opts) {
     state = rows.map(function (r) { return { a: r.a || '', b: r.b || '' }; });
     if (state.length === 0) state = [{ a: '', b: '' }];
+    dom.multiball.checked = !!(opts && opts.multiball);
+    updateColumnHeads();
     rebuildTable();
     renderNow();
+  }
+
+  function updateColumnHeads() {
+    if (!dom.headB) return;
+    dom.headB.innerHTML = dom.multiball.checked
+      ? 'Zuspieler <span class="muted">(Multiball)</span>'
+      : 'Spieler B <span class="muted">(hinten)</span>';
   }
 
   function buildExampleButtons() {
@@ -195,7 +218,7 @@
       btn.type = 'button';
       btn.className = 'btn-chip';
       btn.textContent = ex.name;
-      btn.addEventListener('click', function () { loadRows(ex.rows); });
+      btn.addEventListener('click', function () { loadRows(ex.rows, { multiball: ex.multiball }); });
       dom.examples.appendChild(btn);
     });
   }
@@ -205,8 +228,11 @@
     dom.addRow = document.getElementById('addRow');
     dom.examples = document.getElementById('examples');
     dom.svgContainer = document.getElementById('svgContainer');
+    dom.multiball = document.getElementById('multiball');
+    dom.headB = document.getElementById('headB');
 
     dom.addRow.addEventListener('click', addRow);
+    dom.multiball.addEventListener('change', function () { updateColumnHeads(); renderNow(); });
     document.getElementById('btnPng').addEventListener('click', function () {
       TTV.exporter.exportPNG(currentSvg(), 'tt-uebung.png', 3);
     });
@@ -224,9 +250,6 @@
     loadRows(DEFAULT_ROWS);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })(window.TTV = window.TTV || {});

@@ -14,35 +14,47 @@ unregelmäßiger Platzierung und Zielbereichen. Die Grafik lässt sich als **PNG
 ## Notation
 
 Pro Tabellenzeile ein Ballwechsel-Schritt. **Spieler A** steht vorne, **Spieler B** hinten.
+Die Notation orientiert sich an den TTVN-CampMappen und ist bewusst tolerant.
 
 ```
-[N mal] [kurzer] TECHNIK aus [kurze] POSITION in [kurze] POSITION
-                                              | POSITION bis POSITION
-                                              | POSITION oder [kurze] POSITION …
-Frei
+[N mal] TECHNIK [Richtung] [aus [Tiefe] POSITION] in [Tiefe] ZIEL
+Frei | endlos
+
+Richtung = diagonal | längs | parallel
+Tiefe    = kurz | halblang | lang
+POSITION = VH | RH | Mitte | Mitte der VH | Mitte der RH | Ellbogen | ganzer Tisch
+ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 ```
 
-- **TECHNIK** – ein Wort, frei wählbar (`VHT`, `RHB`, `Schupf`, …)
-- **POSITION** – `VH`, `RH` oder `Mitte`
-- `aus` = Start­position, `in` = Ziel­position
-- `Frei` – freier Ball, beendet die Rally
+- **TECHNIK** – ein Wort; Varianten mit „/“ (`RHK/RHT`). Auch `Aufschlag`/`AS`.
+- **`aus …` ist optional.** Fehlt es, kommt der Ball vom letzten Landepunkt (Rally-Kette) –
+  genau wie die CampMappe es schreibt (`RHK/RHT in RH` → `RHB in RH` → …).
+- **Richtung** statt fester Position: `VHT aus VH diagonal` leitet das Ziel selbst ab.
+- `Frei` beendet, `endlos` markiert eine Dauerübung.
+- **Multiball:** Schalter „Multiball (Zuspiel)“ macht Spieler B zum Zuspieler (Balleimer,
+  gestrichelte Zuspiel-Pfeile).
 
 ### Beispiele
 
 | Eingabe | Bedeutung |
 | --- | --- |
 | `VHT aus VH in Mitte` | Vorhand-Topspin aus der Vorhand in die Mitte |
-| `kurzer VHB aus VH in kurze Mitte` | kurzer Ball, der nah am Netz in der Mitte landet |
-| `VHT aus VH in Mitte oder RH` | unregelmäßig: Ziel Mitte **oder** Rückhand (gestrichelt) |
-| `VHT aus VH in VH bis Mitte` | Zielbereich zwischen Vorhand und Mitte (schattiert) |
-| `2-3 mal RHT aus RH in RH` | Schritt 2- bis 3-mal wiederholen |
+| `RHK/RHT in RH` | Konter **oder** Topspin in die Rückhand (Ursprung aus Ballverlauf) |
+| `VHT aus VH diagonal` | Topspin diagonal (Ziel wird abgeleitet) |
+| `kurzer Aufschlag in kurze RH` | kurzer Aufschlag, der kurz in die RH gelegt wird |
+| `Flip in halblang RH` | Flip, der halblang (mittlere Tiefe) in die RH gespielt wird |
+| `VHT in Mitte oder RH` | unregelmäßig: Ziel Mitte **oder** RH (gestrichelt) |
+| `VHT in VH bis Mitte` | Zielbereich zwischen Vorhand und Mitte (schattiert) |
+| `Block unregelmäßig in VH` | Block, variabel platziert (Variabilitäts-Band) |
+| `2-3 mal RHT in RH` | Schritt 2- bis 3-mal wiederholen |
 
 ## Grafik-Legende
 
-- Blauer Pfeil = Schlag von **Spieler A**, roter Pfeil = Schlag von **Spieler B**
+- Blauer Pfeil = Schlag von **Spieler A**, roter Pfeil = **Spieler B**, grau gestrichelt = **Zuspiel**
 - Gestrichelt = Alternative bei `oder`
-- Schattierte Fläche = Zielbereich bei `bis`
-- Position nahe der grauen Netzlinie = **kurz**
+- Schattierte Fläche = Bereich (`bis`), `ganzer Tisch` oder `unregelmäßig`
+- Tiefe am Tisch: am Netz = **kurz**, Mitte = **halblang**, Grundlinie = **lang**
+- Korb-Symbol = Balleimer des Zuspielers (Multiball)
 
 ## Lokal starten
 
@@ -63,8 +75,9 @@ src/
 ├── css/style.css
 └── js/
     ├── notation.js     Parser & Validator der Notation
-    ├── geometry.js     Tisch- und Positions-Koordinaten (lang/kurz)
-    ├── renderer.js     SVG-Zeichnung (Tisch, Pfeile, Bereiche, Labels)
+    ├── geometry.js     Tisch- und Positions-Koordinaten (Tiefen + Zonen)
+    ├── resolver.js     Ballverlauf-Kette + Richtungs-Ableitung
+    ├── renderer.js     SVG-Zeichnung (Tisch, Pfeile, Zonen, Multiball, Labels)
     ├── export.js       PNG-/SVG-Export
     └── app.js          UI, Live-Validierung, Auto-Render
 orig/                   Originalstand von 2015 (Referenz)
