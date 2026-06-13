@@ -1,0 +1,16 @@
+# Rohmaterial (große PDFs) – nicht ins Repo
+raw/
+
+# macOS
+.DS_Store
+
+# Editor / lokale Helfer
+.claude/
+.vscode/
+.idea/
+
+# Node (falls je benötigt)
+node_modules/
+
+# Logs
+*.log
