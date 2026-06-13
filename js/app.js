@@ -23,7 +23,7 @@
       ]
     },
     {
-      name: 'CampMappe (ohne „aus“)',
+      name: 'Ohne „aus“ (Ballverlauf)',
       rows: [
         { a: 'RHK/RHT in RH', b: 'RHB in RH' },
         { a: 'RHK/RHT in RH', b: 'RHB in Mitte der VH' },
