@@ -75,13 +75,13 @@
       ]
     },
     {
-      // Multiball: Zuspieler füttert VH/Mitte/RH, Spieler macht Beinarbeit + Topspin.
-      name: 'Multiball (Zuspiel)',
+      // Balleimer: Zuspiel kommt zu A's Position, Spieler macht Beinarbeit + Topspin.
+      name: 'Balleimer (Zuspiel)',
       multiball: true,
       rows: [
-        { a: 'VHT aus VH diagonal', b: 'Zuspiel in VH' },
-        { a: 'VHT aus Mitte in VH', b: 'Zuspiel in Mitte' },
-        { a: 'VHT aus RH längs', b: 'Zuspiel in RH' }
+        { a: 'VHT aus VH diagonal', b: '' },
+        { a: 'VHT aus Mitte in VH', b: '' },
+        { a: 'VHT aus RH längs', b: '' }
       ]
     }
   ];
@@ -97,9 +97,10 @@
 
   function buildParsedRows() {
     var rows = [];
+    var balleimer = dom.multiball.checked;
     state.forEach(function (row) {
       var pa = TTV.notation.parseCell(row.a);
-      var pb = TTV.notation.parseCell(row.b);
+      var pb = balleimer ? { type: 'empty' } : TTV.notation.parseCell(row.b);
       if (pa.type === 'empty' && pb.type === 'empty') return;
       rows.push({ a: pa, b: pb });
     });
@@ -210,16 +211,14 @@
     state = rows.map(function (r) { return { a: r.a || '', b: r.b || '' }; });
     if (state.length === 0) state = [{ a: '', b: '' }];
     dom.multiball.checked = !!(opts && opts.multiball);
-    updateColumnHeads();
+    updateBalleimer();
     rebuildTable();
     renderNow();
   }
 
-  function updateColumnHeads() {
-    if (!dom.headB) return;
-    dom.headB.innerHTML = dom.multiball.checked
-      ? 'Zuspieler <span class="muted">(Multiball)</span>'
-      : 'Spieler B <span class="muted">(hinten)</span>';
+  function updateBalleimer() {
+    // Im Balleimer-Modus nur die Spalte „Spieler A“ – das Zuspiel ergibt sich aus A's Position.
+    if (dom.table) dom.table.classList.toggle('hide-b', dom.multiball.checked);
   }
 
   function buildExampleButtons() {
@@ -239,10 +238,10 @@
     dom.examples = document.getElementById('examples');
     dom.svgContainer = document.getElementById('svgContainer');
     dom.multiball = document.getElementById('multiball');
-    dom.headB = document.getElementById('headB');
+    dom.table = document.querySelector('.input-table');
 
     dom.addRow.addEventListener('click', addRow);
-    dom.multiball.addEventListener('change', function () { updateColumnHeads(); renderNow(); });
+    dom.multiball.addEventListener('change', function () { updateBalleimer(); renderNow(); });
     document.getElementById('btnPng').addEventListener('click', function () {
       TTV.exporter.exportPNG(currentSvg(), 'tt-uebung.png', 3);
     });

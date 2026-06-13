@@ -85,6 +85,9 @@ code {
 .input-table thead th { font-size: .9rem; color: var(--ink); }
 .row-num { width: 34px; color: var(--muted); text-align: center; }
 .row-actions { width: 44px; text-align: center; }
+/* Balleimer-Modus: Spalte „Spieler B“ ausblenden */
+.input-table.hide-b th:nth-child(3),
+.input-table.hide-b td:nth-child(3) { display: none; }
 
 .cell-input {
   width: 100%;

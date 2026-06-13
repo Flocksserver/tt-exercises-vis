@@ -31,8 +31,8 @@ ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
   man gibt also nur das Ziel an (`RHK/RHT in RH` → `RHB in RH` → …).
 - **Richtung** statt fester Position: `VHT aus VH diagonal` leitet das Ziel selbst ab.
 - `Frei` beendet, `endlos` markiert eine Dauerübung.
-- **Multiball:** Schalter „Multiball (Zuspiel)“ macht Spieler B zum Zuspieler
-  (gestrichelte Zuspiel-Pfeile in Grau).
+- **Balleimer:** Schalter „Balleimer (Zuspiel)“ blendet Spieler B aus; das Zuspiel
+  (gestrichelt, grau) ergibt sich aus der Position, aus der Spieler A spielt.
 
 ### Beispiele
 
@@ -76,10 +76,9 @@ src/
     ├── notation.js     Parser & Validator der Notation
     ├── geometry.js     Tisch- und Positions-Koordinaten (Tiefen + Zonen)
     ├── resolver.js     Ballverlauf-Kette + Richtungs-Ableitung
-    ├── renderer.js     SVG-Zeichnung (Tisch, Pfeile, Zonen, Multiball, Labels)
+    ├── renderer.js     SVG-Zeichnung (Tisch, Pfeile, Zonen, Balleimer, Labels)
     ├── export.js       PNG-/SVG-Export
     └── app.js          UI, Live-Validierung, Auto-Render
-orig/                   Originalstand von 2015 (Referenz)
 ```
 
 ## Deployment

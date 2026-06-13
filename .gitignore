@@ -1,6 +1,9 @@
 # Rohmaterial (große PDFs) – nicht ins Repo
 raw/
 
+# Originalstand 2015 – nur lokale Referenz, nicht online
+orig/
+
 # macOS
 .DS_Store
 
