@@ -111,6 +111,22 @@ test('Mitte VH/RH (mit und ohne „der“), Mitte bleibt Mitte', () => {
   assert.equal(P('VHT aus Mitte VH in RH').from.pos, 'MitteVH');
 });
 
+test('Stroke-Alternativen: ganze Schläge mit „oder“', () => {
+  const r = P('VHT aus VH in RH oder RHT aus RH in RH');
+  assert.equal(r.type, 'alternatives');
+  assert.equal(r.variants.length, 2);
+  assert.equal(r.variants[0].technik, 'VHT');
+  assert.deepEqual(r.variants[0].from, { pos: 'VH', depth: 'lang' });
+  assert.equal(r.variants[1].technik, 'RHT');
+  assert.deepEqual(r.variants[1].from, { pos: 'RH', depth: 'lang' });
+  // drei Alternativen
+  assert.equal(P('VHT in VH oder RHT in RH oder Block in Mitte').variants.length, 3);
+  // Ziel-„oder“ wird NICHT gesplittet (Folge ist Position)
+  assert.equal(P('VHT in Mitte oder RH').type, 'stroke');
+  // Ursprungs-„oder“ wird NICHT gesplittet
+  assert.equal(P('VHT aus Mitte oder RH in VH').type, 'stroke');
+});
+
 test('Ursprungs-Alternativen (aus … oder …)', () => {
   const r = P('VHT aus Mitte oder RH in VH bis Mitte');
   assert.equal(r.type, 'stroke');

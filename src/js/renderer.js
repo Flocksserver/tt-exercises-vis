@@ -112,28 +112,20 @@
     }));
   }
 
-  // Schlag in zeichenfertige Form bringen (Punkte berechnet, „oder“ -> alles gestrichelt).
-  function prep(t, rs, opts) {
-    var player = rs.player;
+  // Einen „shot" zeichenfertig machen (Punkte berechnet, Ursprung(e), Pfeile/Zone).
+  function prep(t, shot, player, opts) {
     var opp = player === 'A' ? 'B' : 'A';
     var isFeed = opts.multiball && player === opts.feeder;
     var colorKey = isFeed ? 'feed' : player;
-    var froms = rs.froms && rs.froms.length ? rs.froms : [rs.from];
+    var froms = shot.froms && shot.froms.length ? shot.froms : [shot.from];
     var fromPts = froms.map(function (f) { return geo.point(t, player, f.pos, f.depth); });
-    var multiFrom = froms.length > 1;
-    var dashAll = isFeed || rs.arrows.length > 1 || multiFrom;   // „oder“ -> alle Pfeile gestrichelt
-    var arrows = rs.arrows.map(function (ar) {
-      return {
-        toPD: ar.to,
-        toPt: geo.point(t, opp, ar.to.pos, ar.to.depth),
-        dashed: dashAll || ar.dashed,
-        used: false
-      };
+    var arrows = shot.arrows.map(function (ar) {
+      return { toPD: ar.to, toPt: geo.point(t, opp, ar.to.pos, ar.to.depth), dashed: isFeed || ar.dashed };
     });
     return {
       player: player, opp: opp, colorKey: colorKey,
-      from: froms[0], fromPt: fromPts[0], fromPts: fromPts, multiFrom: multiFrom,
-      arrows: arrows, zone: rs.zone, variable: rs.variable, label: rs.label
+      fromPDs: froms, fromPts: fromPts, fromPt: fromPts[0],
+      arrows: arrows, zone: shot.zone, zoneDashed: shot.zoneDashed, variable: shot.variable, label: shot.label
     };
   }
 
@@ -148,7 +140,7 @@
       var mid = { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 };
       S.fromPts.forEach(function (fp) {     // je Ursprung eine Zone/ein Pfeil zur Mitte
         drawZone(svg, fp, z1, z2, S.colorKey, S.variable);
-        svg.appendChild(arrowPath(fp, mid, S.colorKey, S.multiFrom));
+        svg.appendChild(arrowPath(fp, mid, S.colorKey, S.zoneDashed));
       });
     }
     var ly = S.player === 'A' ? (t.startY + t.length + 26) : (t.startY - 14);
@@ -160,9 +152,17 @@
     svg.appendChild(label(t.midX, fy, rs.kind === 'endlos' ? '∞ endlos' : 'frei', { size: 18, fill: '#333' }));
   }
 
-  // A-Pfeil und B-Pfeil sind dieselbe Strecke hin & zurück?
-  function reverseMatch(aFrom, aArrow, bFrom, bArrow) {
-    return samePD(aFrom, bArrow.toPD) && samePD(aArrow.toPD, bFrom);
+  // Flache Segmentliste (Ursprung x Ziel) über alle shots eines Spielers.
+  function segmentsOf(prepped) {
+    var out = [];
+    prepped.forEach(function (S) {
+      S.fromPts.forEach(function (fp, fi) {
+        S.arrows.forEach(function (ar) {
+          out.push({ fromPt: fp, fromPD: S.fromPDs[fi], toPt: ar.toPt, toPD: ar.toPD, dashed: ar.dashed, colorKey: S.colorKey, used: false });
+        });
+      });
+    });
+    return out;
   }
 
   function render(rows, opts) {
@@ -188,11 +188,12 @@
         // Balleimer: nur Spieler A. Das Zuspiel (gestrichelt) geht dorthin, wo A spielt.
         if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(svg, t, a);
         if (a && a.kind === 'stroke') {
-          var S = prep(t, a, opts);
-          svg.appendChild(arrowPath(geo.point(t, 'B', 'RH', 'halblang'), S.fromPt, 'feed', true));
-          drawZoneAndLabel(svg, t, S);
-          S.fromPts.forEach(function (fp) {
-            S.arrows.forEach(function (aa) { svg.appendChild(arrowPath(fp, aa.toPt, S.colorKey, aa.dashed)); });
+          a.shots.map(function (s) { return prep(t, s, a.player, opts); }).forEach(function (S) {
+            drawZoneAndLabel(svg, t, S);
+            S.fromPts.forEach(function (fp) {
+              svg.appendChild(arrowPath(geo.point(t, 'B', 'RH', 'halblang'), fp, 'feed', true));
+              S.arrows.forEach(function (aa) { svg.appendChild(arrowPath(fp, aa.toPt, S.colorKey, aa.dashed)); });
+            });
           });
         }
         continue;
@@ -200,28 +201,26 @@
 
       if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(svg, t, a);
       if (b && (b.kind === 'frei' || b.kind === 'endlos')) drawMarker(svg, t, b);
-      var aS = a && a.kind === 'stroke' ? prep(t, a, opts) : null;
-      var bS = b && b.kind === 'stroke' ? prep(t, b, opts) : null;
-      if (aS) drawZoneAndLabel(svg, t, aS);
-      if (bS) drawZoneAndLabel(svg, t, bS);
+      var aShots = (a && a.kind === 'stroke') ? a.shots.map(function (s) { return prep(t, s, a.player, opts); }) : [];
+      var bShots = (b && b.kind === 'stroke') ? b.shots.map(function (s) { return prep(t, s, b.player, opts); }) : [];
+      aShots.concat(bShots).forEach(function (S) { drawZoneAndLabel(svg, t, S); });
 
-      // Gegenläufige Pfeile auf gleicher Strecke -> eine zweifarbige Linie mit zwei Spitzen
-      // (nur bei eindeutigem Ursprung; bei „aus … oder …" zeichnen wir je Ursprung separat)
-      if (aS && bS && !aS.multiFrom && !bS.multiFrom) {
-        aS.arrows.forEach(function (aa) {
-          if (aa.used) return;
-          for (var j = 0; j < bS.arrows.length; j++) {
-            var bb = bS.arrows[j];
-            if (!bb.used && reverseMatch(aS.from, aa, bS.from, bb)) {
-              drawDoubleArrow(svg, aS.fromPt, aa.toPt, aa.dashed || bb.dashed);
-              aa.used = true; bb.used = true;
-              break;
-            }
+      // Gegenläufige Segmente (gleiche Strecke hin & zurück) -> zweifarbige Doppellinie
+      var aSegs = segmentsOf(aShots), bSegs = segmentsOf(bShots);
+      aSegs.forEach(function (as) {
+        if (as.used) return;
+        for (var j = 0; j < bSegs.length; j++) {
+          var bs = bSegs[j];
+          if (!bs.used && samePD(as.fromPD, bs.toPD) && samePD(as.toPD, bs.fromPD)) {
+            drawDoubleArrow(svg, as.fromPt, as.toPt, as.dashed || bs.dashed);
+            as.used = true; bs.used = true;
+            break;
           }
-        });
-      }
-      if (aS) aS.fromPts.forEach(function (fp) { aS.arrows.forEach(function (aa) { if (!aa.used) svg.appendChild(arrowPath(fp, aa.toPt, aS.colorKey, aa.dashed)); }); });
-      if (bS) bS.fromPts.forEach(function (fp) { bS.arrows.forEach(function (bb) { if (!bb.used) svg.appendChild(arrowPath(fp, bb.toPt, bS.colorKey, bb.dashed)); }); });
+        }
+      });
+      aSegs.concat(bSegs).forEach(function (s) {
+        if (!s.used) svg.appendChild(arrowPath(s.fromPt, s.toPt, s.colorKey, s.dashed));
+      });
     }
     return svg;
   }

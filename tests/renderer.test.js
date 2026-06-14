@@ -69,6 +69,23 @@ test('Ursprungs-oder mit Bereich: eine Zone je Ursprung', () => {
   assert.equal(H.byTag(svg, 'polygon').length, 2);
 });
 
+test('Stroke-Alternativen: je ein Pfeil pro Alternative, gestrichelt, eigene Labels', () => {
+  const svg = render([['VHT aus VH in RH oder RHT aus RH in Mitte', 'frei']]);
+  const sgl = H.singleArrows(svg);
+  assert.equal(sgl.length, 2, 'ein Pfeil je Alternative');
+  assert.ok(sgl.every(H.isDashed));
+  const labels = H.texts(svg);
+  assert.ok(labels.includes('VHT') && labels.includes('RHT'), 'beide Techniken beschriftet');
+});
+
+test('Stroke-Alternative deckt das Block-Reaktions-Szenario ab', () => {
+  // A: VHT aus VH in RH ODER RHT aus RH in RH, je nach B-Block
+  const svg = render([['VHT aus VH in RH oder RHT aus RH in RH', 'Block in VH oder RH']]);
+  // A-Alternativen + B-oder-Blocks, teils zu Doppellinien gemergt
+  const total = H.singleArrows(svg).length + H.doubleArrows(svg).length;
+  assert.ok(total >= 2);
+});
+
 test('frei und endlos erzeugen Marker-Text', () => {
   const svg = render([['VHT aus VH in RH', 'frei'], ['endlos', '']]);
   const txt = H.texts(svg);

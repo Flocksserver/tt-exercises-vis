@@ -124,12 +124,49 @@
   };
   var HALF_POINT = { whole: 'Mitte', halfVH: 'MitteVH', halfRH: 'MitteRH' };
 
+  // Zelle an „oder" trennen, wenn danach eine TECHNIK folgt (nicht eine Position).
+  // -> ganze Schlag-Alternativen („… in RH oder RHT aus RH in RH").
+  function splitAlternatives(text) {
+    var tokens = text.split(' ');
+    var segs = [], cur = [], hasTarget = false;
+    for (var k = 0; k < tokens.length; k++) {
+      var lw = tokens[k].toLowerCase();
+      if (lw === 'oder') {
+        var j = k + 1;
+        if (depthOf(tokens[j] || '')) j++;
+        // neuer Schlag nur, wenn der bisherige schon ein Ziel/eine Richtung hat UND
+        // nach „oder" eine Technik (keine Position) folgt. Sonst Technik-/Ziel-„oder".
+        if (hasTarget && !readPosition(tokens, j)) {
+          segs.push(cur.join(' ')); cur = []; hasTarget = false; continue;
+        }
+      }
+      if (/^(in|auf)$/.test(lw) || DIAGONAL.test(tokens[k]) || PARALLEL.test(tokens[k])) hasTarget = true;
+      cur.push(tokens[k]);
+    }
+    segs.push(cur.join(' '));
+    return segs.filter(function (s) { return s.trim() !== ''; });
+  }
+
   function parseCell(rawText) {
     var text = (rawText == null ? '' : String(rawText)).trim().replace(/\s+/g, ' ');
     if (text === '') return { type: 'empty' };
     if (/^frei$/i.test(text)) return { type: 'frei' };
     if (/^endlos$/i.test(text)) return { type: 'endlos' };
 
+    var segs = splitAlternatives(text);
+    if (segs.length > 1) {
+      var variants = [];
+      for (var s = 0; s < segs.length; s++) {
+        var pv = parseStroke(segs[s]);
+        if (pv.type === 'error') return pv;
+        variants.push(pv);
+      }
+      return { type: 'alternatives', variants: variants };
+    }
+    return parseStroke(text);
+  }
+
+  function parseStroke(text) {
     // 1) Wiederholung & Richtung & Regelmäßigkeit aus beliebiger Position herauslösen
     var repeat = null, direction = null, regular = null;
 
