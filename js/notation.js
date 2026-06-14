@@ -75,12 +75,14 @@
       if (/^rh/.test(side)) return { pos: 'MitteRH', n: 3 };
     }
 
-    // einzelnes Token, ggf. mit Suffix „-Bereich“, „-Bauch“, „-Tischhälfte“
-    var base = t0.replace(/[-–](bereich|bauch|tischh(ä|ae)lfte|seite)$/i, '');
+    // einzelnes Token, ggf. mit Suffix „-Bereich/-Feld/-Hälfte/-Bauch …“
+    var base = t0.replace(/[-–](bereich|feld|bauch|tischh(ä|ae)lfte|h(ä|ae)lfte|seite)$/i, '');
     var lowb = base.toLowerCase();
-    if (lowb === 'vh') return { pos: 'VH', n: 1 };
-    if (lowb === 'rh') return { pos: 'RH', n: 1 };
-    if (lowb === 'mitte') return { pos: 'Mitte', n: 1 };
+    // nachfolgendes Suffix-Wort (z. B. „RH Bereich“, „VH Feld“) mitnehmen
+    var suffix = /^(bereich|feld|h(ä|ae)lfte|seite)$/i.test(tokens[i + 1] || '') ? 1 : 0;
+    if (lowb === 'vh') return { pos: 'VH', n: 1 + suffix };
+    if (lowb === 'rh') return { pos: 'RH', n: 1 + suffix };
+    if (lowb === 'mitte') return { pos: 'Mitte', n: 1 + suffix };
     if (/^ell(en)?bogen$/.test(lowb)) return { pos: 'Ellbogen', n: 1 };
     // „VH-Bauch“ ~ Mitte der VH
     if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
@@ -126,6 +128,16 @@
       return fail('Ungültige Technik „' + technik + '“ (ein Wort, „/“ für Varianten erlaubt).');
     }
     var i = 1;
+
+    // 2b) Technik-Alternativen mit „oder“ (VHT oder RHT) -> wie „VHT/RHT“
+    while ((coreTokens[i] || '').toLowerCase() === 'oder'
+      && coreTokens[i + 1]
+      && TECHNIK.test(coreTokens[i + 1])
+      && !/^(aus|in|auf|bis|mal|oder)$/i.test(coreTokens[i + 1])
+      && !readPosition(coreTokens, i + 1)) {
+      technik += '/' + coreTokens[i + 1];
+      i += 2;
+    }
 
     // 3) optional: aus [TIEFE] POSITION
     var from = null;
