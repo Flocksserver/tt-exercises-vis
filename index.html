@@ -14,16 +14,20 @@
 <body>
   <header class="site-header">
     <div class="wrap">
-      <h1>🏓 Tischtennis-Übungsdesign-Visualisierer</h1>
-      <p class="tagline">Übungen aus einfacher Textnotation als Tisch-Grafik zeichnen – und als PNG oder SVG exportieren.</p>
+      <div class="lang-switch">
+        <button type="button" data-lang-btn="de" title="Deutsch">🇩🇪</button>
+        <button type="button" data-lang-btn="en" title="English">🇬🇧</button>
+      </div>
+      <h1 data-i18n="title">🏓 Tischtennis-Übungsdesign-Visualisierer</h1>
+      <p class="tagline" data-i18n="tagline">Übungen aus einfacher Textnotation als Tisch-Grafik zeichnen – und als PNG oder SVG exportieren.</p>
     </div>
   </header>
 
   <main class="wrap">
     <!-- Werkzeug -->
     <section class="card" aria-labelledby="tool-title">
-      <h2 id="tool-title">Übung erstellen</h2>
-      <p class="muted">
+      <h2 id="tool-title" data-i18n="toolTitle">Übung erstellen</h2>
+      <p class="muted" data-i18n-html="intro">
         Jede Zeile ist ein Ballwechsel-Schritt. <strong>Spieler A</strong> steht vorne,
         <strong>Spieler B</strong> hinten. Schreibe pro Feld z. B. <code>VHT aus VH in Mitte</code>
         – das <code>aus …</code> darf entfallen (<code>VHT in RH</code>), der Ursprung wird dann
@@ -31,7 +35,7 @@
       </p>
 
       <div class="examples-bar">
-        <span class="examples-label">Beispiele:</span>
+        <span class="examples-label" data-i18n="examplesLabel">Beispiele:</span>
         <div id="examples" class="examples"></div>
       </div>
 
@@ -40,9 +44,9 @@
           <thead>
             <tr>
               <th class="row-num">#</th>
-              <th>Spieler A <span class="muted">(vorne)</span></th>
+              <th data-i18n-html="colA">Spieler A <span class="muted">(vorne)</span></th>
               <th id="headB">Spieler B <span class="muted">(hinten)</span></th>
-              <th class="row-actions" aria-label="Aktionen"></th>
+              <th class="row-actions"></th>
             </tr>
           </thead>
           <tbody id="rowsBody"></tbody>
@@ -50,12 +54,12 @@
       </div>
 
       <div class="toolbar">
-        <button type="button" id="addRow" class="btn">+ Zeile</button>
-        <button type="button" id="btnReset" class="btn">Zurücksetzen</button>
-        <label class="toggle"><input type="checkbox" id="multiball" /> Balleimer (Zuspiel)</label>
+        <button type="button" id="addRow" class="btn" data-i18n="addRow">+ Zeile</button>
+        <button type="button" id="btnReset" class="btn" data-i18n="reset">Zurücksetzen</button>
+        <label class="toggle"><input type="checkbox" id="multiball" /> <span data-i18n="balleimer">Balleimer (Zuspiel)</span></label>
         <span class="spacer"></span>
-        <button type="button" id="btnPng" class="btn btn-primary">PNG exportieren</button>
-        <button type="button" id="btnSvg" class="btn">SVG exportieren</button>
+        <button type="button" id="btnPng" class="btn btn-primary" data-i18n="exportPng">PNG exportieren</button>
+        <button type="button" id="btnSvg" class="btn" data-i18n="exportSvg">SVG exportieren</button>
       </div>
 
       <div id="svgContainer" class="svg-container" aria-live="polite"></div>
@@ -63,53 +67,26 @@
 
     <!-- Notation / Legende -->
     <section class="card" aria-labelledby="legend-title">
-      <h2 id="legend-title">Notation &amp; Legende</h2>
+      <h2 id="legend-title" data-i18n-html="legendTitle">Notation &amp; Legende</h2>
 
       <div class="legend-grid">
-        <div>
-          <h3>Grundmuster</h3>
-          <p class="syntax"><code>[N&nbsp;mal] <b>TECHNIK</b> [Richtung] [aus [Tiefe] <b>POS</b>] in [Tiefe] <b>ZIEL</b></code></p>
-          <ul class="legend-list">
-            <li><b>TECHNIK</b> – ein Wort; Varianten mit „/“ (<code>RHK/RHT</code>). Auch <code>Aufschlag</code>/<code>AS</code>, <code>Block</code>, <code>Schupf</code>, <code>Flip</code>.</li>
-            <li><b>POSITION</b> – <code>VH</code>, <code>RH</code>, <code>Mitte</code>, <code>Mitte VH/RH</code>, <code>ganzer Tisch</code>, <code>halber Tisch RH/VH</code>.</li>
-            <li><code>in</code> = Ziel (auch <code>auf</code>), <code>aus</code> = Start (optional).</li>
-            <li><code>Frei</code> beendet, <code>endlos</code> = Dauerübung.</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Erweiterungen</h3>
-          <ul class="legend-list">
-            <li><b>Ohne „aus“:</b> nur das Ziel (<code>RHK/RHT in RH</code>); Start = Schlaghand (RH/VH) bzw. letzter Ball.</li>
-            <li><b>Richtung:</b> <code>diagonal</code> / <code>parallel</code> – Ziel wird abgeleitet.</li>
-            <li><b>Tiefe:</b> <code>kurz</code> / <code>halblang</code> / <code>lang</code> (z. B. <code>in kurze Mitte</code>).</li>
-            <li><b>Alternativen:</b> Ziel <code>… in Mitte oder RH</code>, Ursprung <code>aus Mitte oder RH …</code> oder ganze Schläge <code>VHT aus VH in RH oder RHT aus RH in RH</code>.</li>
-            <li><b>Bereich:</b> <code>… in VH bis Mitte</code>.</li>
-            <li><b>Variabel:</b> <code>unregelmäßig</code> · <b>Wiederholung:</b> <code>2-3 mal …</code> / <code>(2x)</code>.</li>
-          </ul>
-        </div>
-        <div>
-          <h3>Grafik</h3>
-          <ul class="legend-list">
-            <li><span class="swatch swatch-a"></span> Ball von <b>A</b> · <span class="swatch swatch-b"></span> Ball von <b>B</b> · <span class="swatch swatch-feed"></span> Zuspiel (Balleimer).</li>
-            <li>Gleiche Strecke hin &amp; zurück = <b>eine Linie, zwei Spitzen</b>; Farbwechsel am Netz (blau = A’s Ball auf B-Seite, rot = B’s Ball auf A-Seite).</li>
-            <li>Gestrichelt = Alternative (<code>oder</code>) bzw. Zuspiel.</li>
-            <li>Schattierte Fläche = Bereich (<code>bis</code>), <code>ganzer Tisch</code> oder <code>unregelmäßig</code>.</li>
-            <li>Tiefe am Tisch: Netz = <b>kurz</b>, Mitte = <b>halblang</b>, Grundlinie = <b>lang</b>.</li>
-          </ul>
-        </div>
+        <div data-i18n-html="legBasics"></div>
+        <div data-i18n-html="legExt"></div>
+        <div data-i18n-html="legGraphic"></div>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
-      <p>
+      <p data-i18n-html="footer">
         © <span id="year">2026</span> Marcel Kaufmann · MIT-Lizenz · frei für jeden Zweck nutzbar.
         <a href="https://github.com/Flocksserver/tt-exercises-vis">Quellcode auf GitHub</a>
       </p>
     </div>
   </footer>
 
+  <script src="js/i18n.js"></script>
   <script src="js/notation.js"></script>
   <script src="js/geometry.js"></script>
   <script src="js/resolver.js"></script>

@@ -149,7 +149,8 @@
 
   function drawMarker(svg, t, rs) {
     var fy = rs.player === 'A' ? (t.startY + t.length - 30) : (t.startY + 30);
-    svg.appendChild(label(t.midX, fy, rs.kind === 'endlos' ? '∞ endlos' : 'frei', { size: 18, fill: '#333' }));
+    var txt = (TTV.i18n && TTV.i18n.marker) ? TTV.i18n.marker(rs.kind) : (rs.kind === 'endlos' ? '∞ endlos' : 'frei');
+    svg.appendChild(label(t.midX, fy, txt, { size: 18, fill: '#333' }));
   }
 
   // Flache Segmentliste (Ursprung x Ziel) über alle shots eines Spielers.
