@@ -73,6 +73,27 @@ test('Alternativen (oder), beliebig viele', () => {
   assert.equal(P('VHT in VH oder kurze Mitte').target.list[1].depth, 'kurz');
 });
 
+test('Technik-Alternativen mit „oder“ (VHT oder RHT)', () => {
+  const r = P('VHT oder RHT aus RH-Bereich in RH');
+  assert.equal(r.type, 'stroke');
+  assert.equal(r.technik, 'VHT/RHT');
+  assert.deepEqual(r.from, { pos: 'RH', depth: 'lang' });
+  assert.deepEqual(r.target.list, [{ pos: 'RH', depth: 'lang' }]);
+  // drei Techniken
+  assert.equal(P('VHT oder RHT oder VHK in RH').technik, 'VHT/RHT/VHK');
+  // Ziel-oder bleibt Ziel-oder (nicht als Technik gefressen)
+  assert.equal(P('VHT in VH oder RH').target.list.length, 2);
+});
+
+test('Zonen-Suffixe: -Bereich/-Feld/-Hälfte, auch mit Leerzeichen', () => {
+  assert.equal(P('RHK in RH-Bereich').target.list[0].pos, 'RH');
+  assert.equal(P('RHK in RH Bereich').target.list[0].pos, 'RH');
+  assert.equal(P('VHT in VH-Feld').target.list[0].pos, 'VH');
+  assert.equal(P('VHT aus VH-Feld in RH').from.pos, 'VH');
+  assert.equal(P('RHB in RH-Hälfte').target.list[0].pos, 'RH');
+  assert.equal(P('RHB in RH Hälfte').target.list[0].pos, 'RH');
+});
+
 test('Bereich (bis)', () => {
   const r = P('VHT aus VH in VH bis Mitte');
   assert.equal(r.target.kind, 'range');
