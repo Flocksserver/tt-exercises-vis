@@ -167,7 +167,30 @@ test('Fehlerfälle', () => {
   assert.equal(P('VHT aus VH in Quatsch').type, 'error');
   assert.equal(P('aus VH in RH').type, 'error');        // Technik = Schlüsselwort
   assert.equal(P('VHT aus VH').type, 'error');           // kein Ziel/Richtung
-  assert.equal(P('5 VHT in RH').type, 'error');          // Zahl ohne mal/x
+});
+
+test('Kurzformen & Synonyme (CampMappe)', () => {
+  // Mi = Mitte
+  assert.equal(P('VHT aus VH in Mi').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT aus Mi in RH').from.pos, 'Mitte');
+  // tiefe = lang
+  assert.equal(P('RHB in tiefe VH').target.list[0].depth, 'lang');
+  // Wechselpunkt / EB = Ellbogen, mit Artikel
+  assert.equal(P('Block auf den Wechselpunkt').target.list[0].pos, 'Ellbogen');
+  assert.equal(P('VHT auf EB').target.list[0].pos, 'Ellbogen');
+  // X-Ecke = Ecke (Punkt)
+  assert.equal(P('Schupf in VH-Ecke').target.list[0].pos, 'VH');
+  // Bindestrich-Technik
+  assert.equal(P('US-Aufschlag in RH').technik, 'US-Aufschlag');
+  assert.equal(P('VH-Flip in halblang VH').technik, 'VH-Flip');
+  // o. = oder ; führende Zahl ohne „mal"
+  assert.equal(P('1-2 VHB in VH').repeat, '1-2');
+  assert.equal(P('VHT in VH o. RH').target.list.length, 2);
+  // Slash-Positionen
+  assert.deepEqual(P('Aufschlag in VH/Mitte/RH').target.list.map(x => x.pos), ['VH', 'Mitte', 'RH']);
+  // Aufzählungs-Präfix + abschließender Punkt
+  assert.equal(P('a) RHT diagonal').type, 'stroke');
+  assert.equal(P('1. Kurzer Aufschlag in Mi').type, 'stroke');
 });
 
 test('validateCell', () => {
