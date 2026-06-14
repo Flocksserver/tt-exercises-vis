@@ -71,6 +71,17 @@ test('oder: mehrere Pfeile, erste markiert Folgeposition', () => {
   assert.deepEqual(res[0].b.from, { pos: 'Mitte', depth: 'lang' });
 });
 
+test('Ursprungs-oder: froms-Liste + kein Logik-Fehler (variabel)', () => {
+  // B spielt variabel (oder), danach A aus Mitte oder RH -> kein Issue
+  const rows = [
+    { a: P('VHT aus VH diagonal'), b: P('Block in Mitte oder RH') },
+    { a: P('VHT aus Mitte oder RH in VH bis Mitte'), b: P('frei') }
+  ];
+  const res = TTV.resolver.resolveWithIssues(rows);
+  assert.deepEqual(res.rows[1].a.froms.map(f => f.pos), ['Mitte', 'RH']);
+  assert.deepEqual(res.issues, []);
+});
+
 test('frei/endlos werden als Marker durchgereicht', () => {
   const res = seq([['VHT aus VH in RH', 'frei'], ['endlos', '']]);
   assert.equal(res[0].b.kind, 'frei');

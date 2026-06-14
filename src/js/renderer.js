@@ -118,7 +118,10 @@
     var opp = player === 'A' ? 'B' : 'A';
     var isFeed = opts.multiball && player === opts.feeder;
     var colorKey = isFeed ? 'feed' : player;
-    var dashAll = isFeed || rs.arrows.length > 1;   // „oder“ -> alle Pfeile gestrichelt
+    var froms = rs.froms && rs.froms.length ? rs.froms : [rs.from];
+    var fromPts = froms.map(function (f) { return geo.point(t, player, f.pos, f.depth); });
+    var multiFrom = froms.length > 1;
+    var dashAll = isFeed || rs.arrows.length > 1 || multiFrom;   // „oder“ -> alle Pfeile gestrichelt
     var arrows = rs.arrows.map(function (ar) {
       return {
         toPD: ar.to,
@@ -129,7 +132,7 @@
     });
     return {
       player: player, opp: opp, colorKey: colorKey,
-      from: rs.from, fromPt: geo.point(t, player, rs.from.pos, rs.from.depth),
+      from: froms[0], fromPt: fromPts[0], fromPts: fromPts, multiFrom: multiFrom,
       arrows: arrows, zone: rs.zone, variable: rs.variable, label: rs.label
     };
   }
@@ -142,8 +145,11 @@
     if (S.zone) {
       var z1 = geo.point(t, S.opp, S.zone.from.pos, S.zone.from.depth);
       var z2 = geo.point(t, S.opp, S.zone.to.pos, S.zone.to.depth);
-      drawZone(svg, S.fromPt, z1, z2, S.colorKey, S.variable);
-      svg.appendChild(arrowPath(S.fromPt, { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 }, S.colorKey, false));
+      var mid = { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 };
+      S.fromPts.forEach(function (fp) {     // je Ursprung eine Zone/ein Pfeil zur Mitte
+        drawZone(svg, fp, z1, z2, S.colorKey, S.variable);
+        svg.appendChild(arrowPath(fp, mid, S.colorKey, S.multiFrom));
+      });
     }
     var ly = S.player === 'A' ? (t.startY + t.length + 26) : (t.startY - 14);
     svg.appendChild(label(S.fromPt.x, ly, S.label, { size: 20, fill: COLORS[S.colorKey] }));
@@ -185,7 +191,9 @@
           var S = prep(t, a, opts);
           svg.appendChild(arrowPath(geo.point(t, 'B', 'RH', 'halblang'), S.fromPt, 'feed', true));
           drawZoneAndLabel(svg, t, S);
-          S.arrows.forEach(function (aa) { svg.appendChild(arrowPath(S.fromPt, aa.toPt, S.colorKey, aa.dashed)); });
+          S.fromPts.forEach(function (fp) {
+            S.arrows.forEach(function (aa) { svg.appendChild(arrowPath(fp, aa.toPt, S.colorKey, aa.dashed)); });
+          });
         }
         continue;
       }
@@ -198,7 +206,8 @@
       if (bS) drawZoneAndLabel(svg, t, bS);
 
       // Gegenläufige Pfeile auf gleicher Strecke -> eine zweifarbige Linie mit zwei Spitzen
-      if (aS && bS) {
+      // (nur bei eindeutigem Ursprung; bei „aus … oder …" zeichnen wir je Ursprung separat)
+      if (aS && bS && !aS.multiFrom && !bS.multiFrom) {
         aS.arrows.forEach(function (aa) {
           if (aa.used) return;
           for (var j = 0; j < bS.arrows.length; j++) {
@@ -211,8 +220,8 @@
           }
         });
       }
-      if (aS) aS.arrows.forEach(function (aa) { if (!aa.used) svg.appendChild(arrowPath(aS.fromPt, aa.toPt, aS.colorKey, aa.dashed)); });
-      if (bS) bS.arrows.forEach(function (bb) { if (!bb.used) svg.appendChild(arrowPath(bS.fromPt, bb.toPt, bS.colorKey, bb.dashed)); });
+      if (aS) aS.fromPts.forEach(function (fp) { aS.arrows.forEach(function (aa) { if (!aa.used) svg.appendChild(arrowPath(fp, aa.toPt, aS.colorKey, aa.dashed)); }); });
+      if (bS) bS.fromPts.forEach(function (fp) { bS.arrows.forEach(function (bb) { if (!bb.used) svg.appendChild(arrowPath(fp, bb.toPt, bS.colorKey, bb.dashed)); }); });
     }
     return svg;
   }

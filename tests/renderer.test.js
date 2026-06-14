@@ -56,6 +56,19 @@ test('einzelner Schlag ist solide (nicht gestrichelt)', () => {
   assert.equal(H.isDashed(sgl[0]), false);
 });
 
+test('Ursprungs-oder: ein Pfeil je Ursprung, alle gestrichelt, kein Merge', () => {
+  const svg = render([['VHT aus Mitte oder RH in VH', 'frei']]);
+  const sgl = H.singleArrows(svg);
+  assert.equal(sgl.length, 2, 'je ein Pfeil von Mitte und von RH');
+  assert.ok(sgl.every(H.isDashed));
+  assert.equal(H.doubleArrows(svg).length, 0);
+});
+
+test('Ursprungs-oder mit Bereich: eine Zone je Ursprung', () => {
+  const svg = render([['VHT aus Mitte oder RH in VH bis Mitte', 'frei']]);
+  assert.equal(H.byTag(svg, 'polygon').length, 2);
+});
+
 test('frei und endlos erzeugen Marker-Text', () => {
   const svg = render([['VHT aus VH in RH', 'frei'], ['endlos', '']]);
   const txt = H.texts(svg);

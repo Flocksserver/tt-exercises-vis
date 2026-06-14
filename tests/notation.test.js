@@ -111,6 +111,20 @@ test('Mitte VH/RH (mit und ohne „der“), Mitte bleibt Mitte', () => {
   assert.equal(P('VHT aus Mitte VH in RH').from.pos, 'MitteVH');
 });
 
+test('Ursprungs-Alternativen (aus … oder …)', () => {
+  const r = P('VHT aus Mitte oder RH in VH bis Mitte');
+  assert.equal(r.type, 'stroke');
+  assert.deepEqual(r.from, { pos: 'Mitte', depth: 'lang' });
+  assert.deepEqual(r.fromAlts, [{ pos: 'RH', depth: 'lang' }]);
+  assert.deepEqual(r.target.range, { from: 'VH', to: 'Mitte' });
+  // mehrere Ursprünge
+  assert.equal(P('VHT aus VH oder Mitte oder RH in VH').fromAlts.length, 2);
+  // Ziel-oder bleibt davon unberührt
+  const t = P('VHT aus VH in Mitte oder RH');
+  assert.equal(t.fromAlts, null);
+  assert.equal(t.target.list.length, 2);
+});
+
 test('Bereich (bis)', () => {
   const r = P('VHT aus VH in VH bis Mitte');
   assert.equal(r.target.kind, 'range');

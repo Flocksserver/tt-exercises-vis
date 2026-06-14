@@ -173,8 +173,8 @@
       i += 2;
     }
 
-    // 3) optional: aus [TIEFE] POSITION
-    var from = null;
+    // 3) optional: aus [TIEFE] POSITION [oder [TIEFE] POSITION]…
+    var from = null, fromAlts = [];
     if ((coreTokens[i] || '').toLowerCase() === 'aus') {
       i++;
       var fromDepth = 'lang';
@@ -185,6 +185,15 @@
       i += fp.n;
       // Halb-/Ganzfeld als Ursprung -> repräsentativer Punkt
       from = { pos: HALF_POINT[fp.pos] || fp.pos, depth: fromDepth };
+      // weitere Ursprünge mit „oder“ (aus Mitte oder RH)
+      while ((coreTokens[i] || '').toLowerCase() === 'oder') {
+        var j = i + 1, da = depthOf(coreTokens[j] || '');
+        if (da) j++;
+        var fa = readPosition(coreTokens, j);
+        if (!fa) break;   // gehört nicht zum Ursprung (z. B. Ziel-„oder“)
+        i = j + fa.n;
+        fromAlts.push({ pos: HALF_POINT[fa.pos] || fa.pos, depth: da || 'lang' });
+      }
     }
 
     // 4) optional: in|auf [TIEFE] ZIEL
@@ -234,6 +243,7 @@
       regular: regular,
       strokeDepth: strokeDepth,
       from: from,
+      fromAlts: fromAlts.length ? fromAlts : null,
       target: target
     };
   }
