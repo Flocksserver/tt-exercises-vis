@@ -19,8 +19,8 @@
   // Schlaghand aus der Technik (RH*/VH*) -> natürliche Ursprungsseite, wenn „aus …" fehlt.
   function handOf(technik) {
     var t = (technik || '').split('/')[0].toUpperCase();
-    if (t.indexOf('VH') === 0) return 'VH';
-    if (t.indexOf('RH') === 0) return 'RH';
+    if (t.indexOf('VH') === 0 || t.indexOf('FH') === 0) return 'VH';   // Vorhand / forehand
+    if (t.indexOf('RH') === 0 || t.indexOf('BH') === 0) return 'RH';   // Rückhand / backhand
     return null;
   }
 

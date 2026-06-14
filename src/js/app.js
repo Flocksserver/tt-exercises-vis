@@ -8,8 +8,13 @@
   var MIN_ROWS = 1;
 
   // Standard-Übung und Beispielkatalog kommen aus examples.js (separat testbar).
-  var DEFAULT_ROWS = TTV.examples.DEFAULT_ROWS;
   var EXAMPLES = TTV.examples.EXAMPLES;
+
+  function isEn() { return TTV.i18n && TTV.i18n.lang === 'en'; }
+  function exRows(ex) { return (isEn() && ex.rowsEn) ? ex.rowsEn : ex.rows; }
+  function defaultRows() { return (isEn() && TTV.examples.DEFAULT_ROWS_EN) ? TTV.examples.DEFAULT_ROWS_EN : TTV.examples.DEFAULT_ROWS; }
+
+  var pristine = null;   // 'default' | Beispiel-Objekt | null (vom Nutzer bearbeitet)
 
   var state = [];
   var renderTimer = null;
@@ -70,6 +75,7 @@
 
     input.addEventListener('input', function () {
       state[rowIndex][key] = input.value;
+      pristine = null;   // Nutzer hat bearbeitet -> bei Sprachwechsel nicht überschreiben
       var res = TTV.notation.validateCell(input.value);
       if (res.valid) { input.classList.remove('invalid'); err.textContent = ''; }
       else { input.classList.add('invalid'); err.textContent = errText(res); }
@@ -136,10 +142,11 @@
     renderNow();
   }
 
-  function loadRows(rows, opts) {
+  function loadRows(rows, opts, source) {
     state = rows.map(function (r) { return { a: r.a || '', b: r.b || '' }; });
     if (state.length === 0) state = [{ a: '', b: '' }];
     dom.multiball.checked = !!(opts && opts.multiball);
+    pristine = source !== undefined ? source : null;
     updateBalleimer();
     rebuildTable();
     renderNow();
@@ -156,7 +163,7 @@
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-chip';
-      btn.addEventListener('click', function () { loadRows(ex.rows, { multiball: ex.multiball }); });
+      btn.addEventListener('click', function () { loadRows(exRows(ex), { multiball: ex.multiball }, ex); });
       dom.examples.appendChild(btn);
     });
     setExampleNames();
@@ -176,10 +183,11 @@
 
   function onLangChange() {
     setExampleNames();
-    updateBalleimer();
     setYear();
-    revalidateAll();
-    renderNow();
+    // unveränderte Standard-/Beispiel-Inhalte in der neuen Sprache neu laden
+    if (pristine === 'default') loadRows(defaultRows(), {}, 'default');
+    else if (pristine) loadRows(exRows(pristine), { multiball: pristine.multiball }, pristine);
+    else { updateBalleimer(); revalidateAll(); renderNow(); }
   }
 
   function init() {
@@ -200,7 +208,7 @@
       TTV.exporter.exportSVG(currentSvg(), 'tt-uebung.svg');
     });
     document.getElementById('btnReset').addEventListener('click', function () {
-      loadRows(DEFAULT_ROWS);
+      loadRows(defaultRows(), {}, 'default');
     });
 
     // Sprachumschalter (Flaggen) + Reaktion auf Sprachwechsel
@@ -210,7 +218,7 @@
     document.addEventListener('ttv:lang', onLangChange);
 
     buildExampleButtons();
-    loadRows(DEFAULT_ROWS);
+    loadRows(defaultRows(), {}, 'default');
     if (TTV.i18n) TTV.i18n.apply(); else { setYear(); }
   }
 

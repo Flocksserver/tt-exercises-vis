@@ -11,15 +11,27 @@ function parseRows(rows) {
   return rows.map(r => ({ a: P(r.a || ''), b: P(r.b || '') }));
 }
 
-test('alle Beispiel-Zellen sind syntaktisch gültig', () => {
-  const all = [{ name: 'DEFAULT', rows: DEFAULT_ROWS }].concat(EXAMPLES);
+const DEFAULT_ROWS_EN = TTV.examples.DEFAULT_ROWS_EN;
+
+test('alle Beispiel-Zellen (DE + EN) sind syntaktisch gültig', () => {
+  const all = [{ name: 'DEFAULT', rows: DEFAULT_ROWS, rowsEn: DEFAULT_ROWS_EN }].concat(EXAMPLES);
   all.forEach(ex => {
-    ex.rows.forEach((row, i) => {
-      ['a', 'b'].forEach(k => {
-        const r = P(row[k] || '');
-        assert.notEqual(r.type, 'error', `${ex.name} Zeile ${i + 1} (${k}): "${row[k]}" -> ${r.message || ''}`);
+    [['de', ex.rows], ['en', ex.rowsEn]].forEach(([langKey, rows]) => {
+      assert.ok(rows, `${ex.name}: ${langKey}-Zeilen fehlen`);
+      rows.forEach((row, i) => {
+        ['a', 'b'].forEach(k => {
+          const r = P(row[k] || '');
+          assert.notEqual(r.type, 'error', `${ex.name} ${langKey} Zeile ${i + 1} (${k}): "${row[k]}" -> ${r.message || ''}`);
+        });
       });
     });
+  });
+});
+
+test('englische Beispiele sind logisch konsistent', () => {
+  [{ rows: DEFAULT_ROWS_EN }].concat(EXAMPLES.map(e => ({ rows: e.rowsEn }))).forEach(ex => {
+    const issues = TTV.resolver.findOriginIssues(parseRows(ex.rows));
+    assert.equal(issues.length, 0, JSON.stringify(issues));
   });
 });
 

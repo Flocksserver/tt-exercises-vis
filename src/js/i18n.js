@@ -48,6 +48,7 @@
         '<li>Tiefe am Tisch: Netz = <b>kurz</b>, Mitte = <b>halblang</b>, Grundlinie = <b>lang</b>.</li></ul>',
       footer: '© <span id="year">2026</span> Marcel Kaufmann · MIT-Lizenz · frei für jeden Zweck nutzbar. <a href="https://github.com/Flocksserver/tt-exercises-vis">Quellcode auf GitHub</a>',
       marker: { frei: 'frei', endlos: '∞ endlos' },
+      depth: { kurz: 'kurz', halblang: 'halblang', lang: 'lang' },
       aria: { playerA: 'Spieler A', playerB: 'Spieler B', removeRow: 'Zeile {0} entfernen', langDe: 'Auf Deutsch umschalten', langEn: 'Auf Englisch umschalten' },
       errors: {
         noTech: 'Es fehlt die Technik (z. B. „VHT“).',
@@ -64,7 +65,7 @@
       title: '🏓 Table Tennis Drill Designer',
       tagline: 'Turn simple text notation into table-tennis diagrams – and export them as PNG or SVG.',
       toolTitle: 'Create a drill',
-      intro: 'Each row is one rally step. <strong>Player A</strong> is at the front, <strong>Player B</strong> at the back. Per field write e.g. <code>VHT aus VH in Mitte</code> – the <code>aus …</code> part is optional (<code>VHT in RH</code>); the origin is then inferred from the ball path. <code>Frei</code> or <code>endlos</code> ends/continues the rally.',
+      intro: 'Each row is one rally step. <strong>Player A</strong> is at the front, <strong>Player B</strong> at the back. Per field write e.g. <code>FHT from FH to middle</code> – the <code>from …</code> part is optional (<code>FHT to BH</code>); the origin is then inferred from the ball path. <code>free</code> or <code>endless</code> ends/continues the rally.',
       examplesLabel: 'Examples:',
       colA: 'Player A <span class="muted">(front)</span>',
       colB: 'Player B <span class="muted">(back)</span>',
@@ -77,34 +78,35 @@
       svgEmpty: 'Enter a drill above – the diagram appears here.',
       legendTitle: 'Notation &amp; legend',
       legBasics: '<h3>Basic pattern</h3>' +
-        '<p class="syntax"><code>[N&nbsp;mal] <b>TECHNIQUE</b> [direction] [aus [depth] <b>POS</b>] in [depth] <b>TARGET</b></code></p>' +
+        '<p class="syntax"><code>[N&nbsp;times] <b>TECHNIQUE</b> [direction] [from [depth] <b>POS</b>] to [depth] <b>TARGET</b></code></p>' +
         '<ul class="legend-list">' +
-        '<li><b>TECHNIQUE</b> – one word; variants with „/“ (<code>RHK/RHT</code>). Also <code>Aufschlag</code>/<code>AS</code>, <code>Block</code>, <code>Schupf</code>, <code>Flip</code>.</li>' +
-        '<li><b>POSITION</b> – <code>VH</code> (forehand), <code>RH</code> (backhand), <code>Mitte</code> (middle), <code>Mitte VH/RH</code>, <code>ganzer Tisch</code> (whole table), <code>halber Tisch RH/VH</code> (half table).</li>' +
-        '<li><code>in</code> = target (also <code>auf</code>), <code>aus</code> = origin (optional).</li>' +
-        '<li><code>Frei</code> ends, <code>endlos</code> = continuous drill.</li></ul>',
+        '<li><b>TECHNIQUE</b> – one word; variants with „/“ (<code>FHC/FHT</code>). Also <code>serve</code>, <code>push</code>, <code>block</code>, <code>flip</code>.</li>' +
+        '<li><b>POSITION</b> – <code>FH</code> (forehand), <code>BH</code> (backhand), <code>middle</code>, <code>middle FH/BH</code>, <code>whole table</code>, <code>half table FH/BH</code>.</li>' +
+        '<li><code>to</code> = target (also <code>in</code>), <code>from</code> = origin (optional).</li>' +
+        '<li><code>free</code> ends, <code>endless</code> = continuous drill.</li></ul>',
       legExt: '<h3>Extensions</h3><ul class="legend-list">' +
-        '<li><b>Without „aus“:</b> target only (<code>RHK/RHT in RH</code>); origin = playing hand (RH/VH) or last ball.</li>' +
+        '<li><b>Without „from“:</b> target only (<code>FHC/FHT to BH</code>); origin = playing hand (FH/BH) or last ball.</li>' +
         '<li><b>Direction:</b> <code>diagonal</code> / <code>parallel</code> – target is derived.</li>' +
-        '<li><b>Depth:</b> <code>kurz</code> (short) / <code>halblang</code> (half-long) / <code>lang</code> (long), e.g. <code>in kurze Mitte</code>.</li>' +
-        '<li><b>Alternatives:</b> target <code>… in Mitte oder RH</code>, origin <code>aus Mitte oder RH …</code> or whole strokes <code>VHT aus VH in RH oder RHT aus RH in RH</code>.</li>' +
-        '<li><b>Range:</b> <code>… in VH bis Mitte</code>.</li>' +
-        '<li><b>Variable:</b> <code>unregelmäßig</code> · <b>Repetition:</b> <code>2-3 mal …</code> / <code>(2x)</code>.</li></ul>',
+        '<li><b>Depth:</b> <code>short</code> / <code>half-long</code> / <code>long</code>, e.g. <code>to short middle</code>.</li>' +
+        '<li><b>Alternatives:</b> target <code>… to middle or BH</code>, origin <code>from middle or BH …</code> or whole strokes <code>FHT from FH to BH or BHT from BH to BH</code>.</li>' +
+        '<li><b>Range:</b> <code>… to FH through middle</code>.</li>' +
+        '<li><b>Variable:</b> <code>irregular</code> · <b>Repetition:</b> <code>2-3 times …</code> / <code>(2x)</code>.</li></ul>',
       legGraphic: '<h3>Diagram</h3><ul class="legend-list">' +
         '<li><span class="swatch swatch-a"></span> ball from <b>A</b> · <span class="swatch swatch-b"></span> ball from <b>B</b> · <span class="swatch swatch-feed"></span> feed (multiball).</li>' +
         '<li>Same line there &amp; back = <b>one line, two heads</b>; colour switches at the net (blue = A’s ball on B’s side, red = B’s ball on A’s side).</li>' +
-        '<li>Dashed = alternative (<code>oder</code>) or feed.</li>' +
-        '<li>Shaded area = range (<code>bis</code>), <code>ganzer Tisch</code> or <code>unregelmäßig</code>.</li>' +
+        '<li>Dashed = alternative (<code>or</code>) or feed.</li>' +
+        '<li>Shaded area = range (<code>through</code>), <code>whole table</code> or <code>irregular</code>.</li>' +
         '<li>Depth on the table: net = <b>short</b>, middle = <b>half-long</b>, baseline = <b>long</b>.</li></ul>',
       footer: '© <span id="year">2026</span> Marcel Kaufmann · MIT license · free for any use. <a href="https://github.com/Flocksserver/tt-exercises-vis">Source on GitHub</a>',
       marker: { frei: 'free', endlos: '∞ endless' },
+      depth: { kurz: 'short', halblang: 'half-long', lang: 'long' },
       aria: { playerA: 'Player A', playerB: 'Player B', removeRow: 'Remove row {0}', langDe: 'Switch to German', langEn: 'Switch to English' },
       errors: {
-        noTech: 'Technique is missing (e.g. „VHT“).',
+        noTech: 'Technique is missing (e.g. „FHT“).',
         badTech: 'Invalid technique „{0}“ (one word, „/“ for variants).',
-        badFrom: 'Invalid start position „{0}“. Allowed: VH, RH, Mitte …',
-        badTarget: 'Invalid target „{0}“. Allowed: VH, RH, Mitte, ganzer Tisch …',
-        noTarget: 'Target missing: „… in VH“, a direction („diagonal“/„parallel“) or „unregelmäßig“.'
+        badFrom: 'Invalid start position „{0}“. Allowed: FH, BH, middle …',
+        badTarget: 'Invalid target „{0}“. Allowed: FH, BH, middle, whole table …',
+        noTarget: 'Target missing: „… to BH“, a direction („diagonal“/„parallel“) or „irregular“.'
       },
       examples: ['BH counter (endless)', 'Block switch (footwork)', 'Diagonal & parallel', 'Without „aus“ (ball path)', 'FH footwork (Mitte↔VH)', 'Short game → opening', 'Crossover & whole table', 'Variable & repetition', 'Ball feeder (multiball)']
     }
@@ -124,6 +126,7 @@
   function t(key) { return (DICT[lang] && DICT[lang][key]) != null ? DICT[lang][key] : (DICT.de[key] || key); }
   function error(code, arg) { return fmt((DICT[lang].errors && DICT[lang].errors[code]) || DICT.de.errors[code] || code, arg); }
   function marker(kind) { return (DICT[lang].marker || DICT.de.marker)[kind]; }
+  function depthWord(d) { return (DICT[lang].depth || DICT.de.depth)[d] || d; }
   function aria(key, arg) { return fmt((DICT[lang].aria || DICT.de.aria)[key] || key, arg); }
   function exampleName(i) { var a = DICT[lang].examples; return (a && a[i]) || DICT.de.examples[i]; }
 
@@ -147,7 +150,7 @@
 
   TTV.i18n = {
     get lang() { return lang; },
-    t: t, error: error, marker: marker, aria: aria, exampleName: exampleName,
+    t: t, error: error, marker: marker, depthWord: depthWord, aria: aria, exampleName: exampleName,
     setLang: setLang, apply: apply
   };
 })(window.TTV = window.TTV || {});

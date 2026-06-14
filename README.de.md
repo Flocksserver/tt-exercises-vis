@@ -4,7 +4,7 @@
 
 **[▶️ Live-Demo](https://flocksserver.github.io/tt-exercises-vis/)** · 🇩🇪 Deutsch · [🇬🇧 English](README.md) · MIT-Lizenz
 
-![Beispiel: drei Tische mit Vorhand-/Rückhand-Topspin-Pfeilen](assets/preview.svg)
+![Beispiel: drei Tische mit Vorhand-/Rückhand-Topspin-Pfeilen](assets/preview.de.svg)
 
 Trainer:innen und Spieler:innen notieren Übungen in einer knappen Kurzform wie
 `VHT aus VH in Mitte`. Dieses Tool liest die Kurzform und zeichnet sie — ein kleiner Tisch pro

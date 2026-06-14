@@ -218,6 +218,25 @@ test('Kurzformen & Synonyme (CampMappe)', () => {
   assert.equal(P('1. Kurzer Aufschlag in Mi').type, 'stroke');
 });
 
+test('Englische DSL (from/to/or, FH/BH/middle, whole/half table, times, free)', () => {
+  assert.deepEqual(P('FHT from FH to middle').from, { pos: 'VH', depth: 'lang' });
+  assert.equal(P('FHT from FH to middle').target.list[0].pos, 'Mitte');
+  assert.equal(P('FHT from forehand to backhand').target.list[0].pos, 'RH');
+  assert.equal(P('Block to whole table').target.kind, 'whole');
+  assert.deepEqual(P('FHT to half table BH').target.range, { from: 'Mitte', to: 'RH' });
+  assert.equal(P('Block to middle of FH').target.list[0].pos, 'MitteVH');
+  assert.equal(P('FHT to FH through middle').target.kind, 'range');
+  assert.deepEqual(P('FHT from FH diagonal or parallel').directions, ['diagonal', 'parallel']);
+  assert.equal(P('2-3 times BHC in BH').repeat, '2-3');
+  assert.equal(P('short serve to short BH').target.list[0].depth, 'kurz');
+  assert.equal(P('Block irregular').regular, 'unregelmaessig');
+  assert.equal(P('FHT from FH to BH or BHT from BH to BH').type, 'alternatives');
+  assert.equal(P('free').type, 'frei');
+  assert.equal(P('endless').type, 'endlos');
+  // gemischt erlaubt, aber sinnlos zu prüfen; wichtig: DE bleibt unberührt
+  assert.equal(P('VHT aus VH in Mitte').target.list[0].pos, 'Mitte');
+});
+
 test('validateCell', () => {
   assert.equal(TTV.notation.validateCell('').valid, true);
   assert.equal(TTV.notation.validateCell('VHT in RH').valid, true);

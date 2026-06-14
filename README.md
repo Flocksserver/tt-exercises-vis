@@ -33,40 +33,41 @@ No accounts, no install, no build step — a single static page that runs entire
 One table row per rally step. **Player A** is at the front, **Player B** at the back.
 
 ```
-[N mal] TECHNIK [direction] [aus [depth] POSITION] in [depth] TARGET
-Frei | endlos
+[N times] TECHNIQUE [direction] [from [depth] POSITION] to [depth] TARGET
+free | endless
 
 direction = diagonal | parallel
-depth     = kurz (short) | halblang (half-long) | lang (long)
-POSITION  = VH | RH | Mitte | Mitte VH/RH | ganzer Tisch | halber Tisch VH/RH
-TARGET    = POSITION [oder [depth] POSITION] …   |   POSITION bis POSITION
+depth     = short | half-long | long
+POSITION  = FH | BH | middle | middle FH/BH | whole table | half table FH/BH
+TARGET    = POSITION [or [depth] POSITION] …   |   POSITION through POSITION
 ```
 
-- **TECHNIK** — one word (e.g. `VHT`, `RHB`, `Schupf`, `Block`, `Aufschlag`); variants with `/`.
-- **`aus …` is optional** — leave it out (`VHT in RH`) and the origin comes from the ball path.
-- **`Frei`** ends the rally, **`endlos`** marks a continuous drill.
-- The notation stays in its established German shorthand even in the English UI; the legend
-  explains every keyword. Many abbreviations and synonyms are accepted, too.
+- **TECHNIQUE** — one word (e.g. `FHT`, `BHB`, `push`, `block`, `serve`); variants with `/`.
+- **`from …` is optional** — leave it out (`FHT to BH`) and the origin comes from the ball path.
+- **`free`** ends the rally, **`endless`** marks a continuous drill.
+- **Bilingual notation.** The parser accepts English **and** German keywords interchangeably —
+  `FH/BH` or `VH/RH`, `from/aus`, `to/in`, `or/oder`, `through/bis`, `times/mal`, `whole table /
+  ganzer Tisch`, … Switch the UI language with the flags; the examples follow.
 
 ### Examples
 
 | Input | Meaning |
 | --- | --- |
-| `VHT aus VH in Mitte` | Forehand topspin from the forehand into the middle |
-| `RHK/RHT in RH` | Backhand counter **or** topspin into the backhand (origin from the rally) |
-| `VHT aus VH diagonal` | Forehand topspin cross‑court (target derived from the direction) |
-| `VHT aus VH diagonal oder parallel` | … cross‑court **or** down the line (both shown) |
-| `kurzer Aufschlag in kurze RH` | Short serve landing short in the backhand |
-| `VHT in VH bis Mitte` | Target zone between forehand and middle |
-| `2-3 mal RHK in RH` | Repeat the step 2–3 times |
-| `VHT aus VH in RH oder RHT aus RH in RH` | Player A plays one of two complete strokes |
+| `FHT from FH to middle` | Forehand topspin from the forehand into the middle |
+| `BHC/BHT to BH` | Backhand counter **or** topspin into the backhand (origin from the rally) |
+| `FHT from FH diagonal` | Forehand topspin cross‑court (target derived from the direction) |
+| `FHT from FH diagonal or parallel` | … cross‑court **or** down the line (both shown) |
+| `short serve to short BH` | Short serve landing short in the backhand |
+| `FHT to FH through middle` | Target zone between forehand and middle |
+| `2-3 times BHC in BH` | Repeat the step 2–3 times |
+| `FHT from FH to BH or BHT from BH to BH` | Player A plays one of two complete strokes |
 
 ## Diagram legend
 
 - Blue arrow = **Player A**, red arrow = **Player B**, grey dashed = **feed** (multiball).
 - Same line there & back = **one line with two heads**; colour switches at the net.
-- Dashed = an alternative (`oder`) or a feed.
-- Shaded area = a range (`bis`), `ganzer Tisch`, or `unregelmäßig` (variable placement).
+- Dashed = an alternative (`or`) or a feed.
+- Shaded area = a range (`through`), `whole table`, or `irregular` (variable placement).
 - Depth on the table: near the net = short, middle = half‑long, baseline = long.
 
 ## Run locally
