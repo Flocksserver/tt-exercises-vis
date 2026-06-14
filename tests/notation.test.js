@@ -39,8 +39,8 @@ test('in und auf sind gleichwertig', () => {
 test('Positionen inkl. Zonen', () => {
   assert.equal(P('RHB in Mitte der VH').target.list[0].pos, 'MitteVH');
   assert.equal(P('RHB in Mitte der RH').target.list[0].pos, 'MitteRH');
-  assert.equal(P('VHT in Ellbogen').target.list[0].pos, 'Ellbogen');
-  assert.equal(P('VHT in Ellenbogen').target.list[0].pos, 'Ellbogen');
+  assert.equal(P('VHT in Ellbogen').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT in Ellenbogen').target.list[0].pos, 'Mitte');
   assert.equal(P('RHK in RH-Bereich').target.list[0].pos, 'RH');
   assert.equal(P('VHT in ganzer Tisch').target.kind, 'whole');
   assert.equal(P('VHT in ganze Tischhälfte').target.kind, 'whole');
@@ -152,8 +152,8 @@ test('Ursprungs-Alternativen (aus … oder …)', () => {
 
 test('Toleranz: Schnitt-Annotationen & Freitext überspringen', () => {
   // „auf Unterschnitt" ist Annotation, echtes Ziel ist „auf den Ellenbogen"
-  assert.equal(P('VHT auf Unterschnitt auf den Ellenbogen').target.list[0].pos, 'Ellbogen');
-  assert.equal(P('VHT mit viel Rotation auf Ellenbogen').target.list[0].pos, 'Ellbogen');
+  assert.equal(P('VHT auf Unterschnitt auf den Ellenbogen').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT mit viel Rotation auf Ellenbogen').target.list[0].pos, 'Mitte');
   assert.equal(P('Langer Aufschlag mit Unterschnitt in RH').target.list[0].pos, 'RH');
   // Freitext mitten drin
   assert.equal(P('VHB zurück in VH-Bereich').target.list[0].pos, 'VH');
@@ -200,9 +200,9 @@ test('Kurzformen & Synonyme (CampMappe)', () => {
   assert.equal(P('VHT aus Mi in RH').from.pos, 'Mitte');
   // tiefe = lang
   assert.equal(P('RHB in tiefe VH').target.list[0].depth, 'lang');
-  // Wechselpunkt / EB = Ellbogen, mit Artikel
-  assert.equal(P('Block auf den Wechselpunkt').target.list[0].pos, 'Ellbogen');
-  assert.equal(P('VHT auf EB').target.list[0].pos, 'Ellbogen');
+  // Wechselpunkt / EB = Mitte (Synonym), mit Artikel
+  assert.equal(P('Block auf den Wechselpunkt').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT auf EB').target.list[0].pos, 'Mitte');
   // X-Ecke = Ecke (Punkt)
   assert.equal(P('Schupf in VH-Ecke').target.list[0].pos, 'VH');
   // Bindestrich-Technik
