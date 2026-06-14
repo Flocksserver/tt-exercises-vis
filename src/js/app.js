@@ -7,95 +7,9 @@
   var MAX_ROWS = 10;
   var MIN_ROWS = 1;
 
-  var DEFAULT_ROWS = [
-    { a: 'VHT aus VH diagonal', b: 'Block in Mitte' },
-    { a: 'VHT aus Mitte in RH', b: 'Block in RH' },
-    { a: 'RHT aus RH in VH', b: 'frei' }
-  ];
-
-  // Spielnahe, real trainierbare Übungen (aus typischen Trainingsformen abgeleitet).
-  var EXAMPLES = [
-    {
-      // Rückhand-Konter diagonal, endlos – beide aus RH in RH.
-      name: 'RH-Konter (endlos)',
-      rows: [
-        { a: 'RHK/RHT aus RH in RH', b: 'RHK/RHB aus RH in RH' },
-        { a: 'endlos', b: '' }
-      ]
-    },
-    {
-      // Beinarbeit: A zieht aus RH/VH, B blockt wechselnd.
-      name: 'Block-Wechsel (Beinarbeit)',
-      rows: [
-        { a: 'RHT aus RH in VH', b: 'VHB in RH' },
-        { a: 'VHT aus VH in Mitte', b: 'VHB in VH' },
-        { a: 'VHT aus VH in RH', b: 'frei' }
-      ]
-    },
-    {
-      // Richtung: diagonal und parallel im Wechsel.
-      name: 'Diagonal & Parallel',
-      rows: [
-        { a: 'RHK/RHT diagonal', b: 'RHK/RHB in RH' },
-        { a: 'RHK/RHT parallel', b: 'VHK/VHB in VH' },
-        { a: 'VHT diagonal', b: 'frei' }
-      ]
-    },
-    {
-      // Verkürzte Schreibweise ohne „aus“ – Ursprung aus dem Ballverlauf.
-      name: 'Ohne „aus“ (Ballverlauf)',
-      rows: [
-        { a: 'RHK/RHT in RH', b: 'RHB in RH' },
-        { a: 'RHK/RHT in RH', b: 'RHB in Mitte der VH' },
-        { a: 'VHT in RH', b: 'frei' }
-      ]
-    },
-    {
-      // VH-Beinarbeit aus Mitte und VH, Abschluss in die RH.
-      name: 'VH-Beinarbeit (Mitte↔VH)',
-      rows: [
-        { a: 'VHT aus Mitte in VH', b: 'VHB aus VH in Mitte' },
-        { a: 'VHT aus VH in VH', b: 'VHB aus VH in VH' },
-        { a: 'VHT aus Mitte in RH', b: 'frei' }
-      ]
-    },
-    {
-      // Kurzes Spiel: Aufschlag, Schupf, Flip – Übergang ins Topspinspiel.
-      name: 'Kurzes Spiel → Eröffnung',
-      rows: [
-        { a: 'kurzer Aufschlag in kurze VH', b: 'Schupf in kurze RH' },
-        { a: 'Schupf in kurze RH', b: 'Flip in halblang VH' },
-        { a: 'VHT aus VH diagonal', b: 'frei' }
-      ]
-    },
-    {
-      // Spiel auf den Wechselpunkt (Ellbogen); zum Schluss öffnet B über den ganzen Tisch.
-      name: 'Wechselpunkt & ganzer Tisch',
-      rows: [
-        { a: 'RHK/RHT in RH', b: 'RHB in RH' },
-        { a: 'VHT aus VH in Ellbogen', b: 'RHB in RH' },
-        { a: 'VHT aus RH diagonal', b: 'Block in ganzer Tisch' }
-      ]
-    },
-    {
-      // Wiederholung (2-3×), Alternativen (oder), Bereich (bis), variabel (unregelmäßig).
-      name: 'Variabel & Wiederholung',
-      rows: [
-        { a: '2-3 mal VHT aus VH diagonal', b: 'Block in VH oder RH' },
-        { a: 'VHT aus RH in VH bis Mitte', b: 'Block unregelmäßig' }
-      ]
-    },
-    {
-      // Balleimer: Zuspiel kommt zu A's Position, Spieler macht Beinarbeit + Topspin.
-      name: 'Balleimer (Zuspiel)',
-      multiball: true,
-      rows: [
-        { a: 'VHT aus VH diagonal', b: '' },
-        { a: 'VHT aus Mitte in VH', b: '' },
-        { a: 'VHT aus RH parallel', b: '' }
-      ]
-    }
-  ];
+  // Standard-Übung und Beispielkatalog kommen aus examples.js (separat testbar).
+  var DEFAULT_ROWS = TTV.examples.DEFAULT_ROWS;
+  var EXAMPLES = TTV.examples.EXAMPLES;
 
   var state = [];
   var renderTimer = null;
