@@ -175,11 +175,11 @@
     var segs = [], cur = [], hasTarget = false;
     for (var k = 0; k < tokens.length; k++) {
       var lw = tokens[k].toLowerCase();
-      if (lw === 'oder') {
+      if (lw === 'oder' && !directionOf(tokens[k + 1] || '')) {   // „… oder <Richtung>" bleibt zusammen
         var j = k + 1;
         if (depthOf(tokens[j] || '')) j++;
         // neuer Schlag nur, wenn der bisherige schon ein Ziel/eine Richtung hat UND
-        // nach „oder" eine Technik (keine Position) folgt. Sonst Technik-/Ziel-„oder".
+        // nach „oder" eine Technik (keine Position) folgt. Sonst Technik-/Ziel-/Richtungs-„oder".
         if (hasTarget && !readPosition(tokens, j)) {
           segs.push(cur.join(' ')); cur = []; hasTarget = false; continue;
         }
@@ -229,15 +229,25 @@
     // führende Zahl ohne „mal“ (z. B. „1-2 VHB“, „0-1 RHT“, „2+ VHT“)
     text = text.replace(/^\s*(\d+(?:-\d+)?\+?)\s+(?=\S)/, function (_, n) { repeat = repeat || n; return ''; });
 
-    var coreTokens = [];
-    text.trim().split(/\s+/).forEach(function (tok) {
-      if (!tok) return;
+    var coreTokens = [], directions = [];
+    var toks = text.trim().split(/\s+/);
+    for (var p = 0; p < toks.length; p++) {
+      var tok = toks[p];
+      if (!tok) continue;
       var dir = directionOf(tok);
-      if (dir) { direction = dir; return; }
+      if (dir) {
+        directions.push(dir);
+        // „diagonal oder parallel“ -> Richtungs-Alternativen
+        while ((toks[p + 1] || '').toLowerCase() === 'oder' && directionOf(toks[p + 2] || '')) {
+          directions.push(directionOf(toks[p + 2])); p += 2;
+        }
+        continue;
+      }
       var r = regularOf(tok);
-      if (r) { regular = r; return; }
+      if (r) { regular = r; continue; }
       coreTokens.push(tok);
-    });
+    }
+    direction = directions[0] || null;
 
     // abschließendes „frei“ („VHT aus Mitte frei“) = offener Schlag ohne festes Ziel
     var openEnd = false;
@@ -359,6 +369,7 @@
       repeat: repeat,
       technik: technik,
       direction: direction,
+      directions: directions,
       regular: regular,
       strokeDepth: strokeDepth,
       from: from,
@@ -396,8 +407,8 @@
     if (stroke.repeat) parts.push(stroke.repeat + '×');
     if (stroke.strokeDepth && stroke.strokeDepth !== 'lang') parts.push(stroke.strokeDepth);
     parts.push(stroke.technik);
-    if (stroke.direction === 'diagonal') parts.push('diag');
-    else if (stroke.direction === 'parallel') parts.push('parallel');
+    var dirs = (stroke.directions && stroke.directions.length) ? stroke.directions : (stroke.direction ? [stroke.direction] : []);
+    if (dirs.length) parts.push(dirs.map(function (d) { return d === 'diagonal' ? 'diag' : 'parallel'; }).join('/'));
     var tag = stroke.regular === 'unregelmaessig' ? 'unr' :
               stroke.regular === 'regelmaessig' ? 'reg' :
               stroke.regular === 'wechselnd' ? 'wechs' : '';

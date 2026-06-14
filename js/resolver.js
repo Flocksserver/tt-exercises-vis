@@ -54,6 +54,11 @@
       zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
     } else if (tgt && tgt.kind === 'positions') {
       arrows = tgt.list.map(function (it, idx) { return { to: { pos: it.pos, depth: it.depth }, dashed: idx > 0 }; });
+    } else if (parsed.directions && parsed.directions.length) {
+      // Richtung(en) leiten das Ziel ab; „diagonal oder parallel“ -> mehrere Pfeile
+      arrows = parsed.directions.map(function (d) {
+        return { to: { pos: deriveTarget(froms[0].pos, d), depth: parsed.strokeDepth || 'lang' }, dashed: false };
+      });
     } else if (parsed.direction) {
       arrows = [{ to: { pos: deriveTarget(froms[0].pos, parsed.direction), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
     }
