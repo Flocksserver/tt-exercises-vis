@@ -141,6 +141,22 @@ test('Ursprungs-Alternativen (aus … oder …)', () => {
   assert.equal(t.target.list.length, 2);
 });
 
+test('Toleranz: Schnitt-Annotationen & Freitext überspringen', () => {
+  // „auf Unterschnitt" ist Annotation, echtes Ziel ist „auf den Ellenbogen"
+  assert.equal(P('VHT auf Unterschnitt auf den Ellenbogen').target.list[0].pos, 'Ellbogen');
+  assert.equal(P('VHT mit viel Rotation auf Ellenbogen').target.list[0].pos, 'Ellbogen');
+  assert.equal(P('Langer Aufschlag mit Unterschnitt in RH').target.list[0].pos, 'RH');
+  // Freitext mitten drin
+  assert.equal(P('VHB zurück in VH-Bereich').target.list[0].pos, 'VH');
+  // -Diagonale als Ziel -> Position
+  assert.equal(P('VHT aus Mitte in RH-Diagonale').target.list[0].pos, 'RH');
+  // trailing „frei" -> offener Schlag (gültig, kein Ziel nötig)
+  var f = P('VHT aus Mitte frei');
+  assert.equal(f.type, 'stroke');
+  assert.deepEqual(f.from, { pos: 'Mitte', depth: 'lang' });
+  assert.equal(f.target, null);
+});
+
 test('Bereich (bis)', () => {
   const r = P('VHT aus VH in VH bis Mitte');
   assert.equal(r.target.kind, 'range');
