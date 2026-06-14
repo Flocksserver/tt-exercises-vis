@@ -56,8 +56,15 @@
             ? { pos: hand, depth: 'lang' }
             : { pos: 'Mitte', depth: 'lang' };
 
-      // Logik-Check: explizites „aus" muss zum Ballort passen (außer Ball variabel/unbestimmt)
-      if (parsed.from && incoming && !incoming.variable && parsed.from.pos !== incoming.pos) {
+      // Mehrere Ursprünge (aus … oder …) sind bewusst variabel.
+      var froms = parsed.from
+        ? [{ pos: parsed.from.pos, depth: parsed.from.depth }].concat(
+            (parsed.fromAlts || []).map(function (f) { return { pos: f.pos, depth: f.depth }; }))
+        : [from];
+
+      // Logik-Check: explizites „aus" muss zum Ballort passen (außer Ball variabel/unbestimmt
+      // oder Ursprung selbst variabel via „oder").
+      if (parsed.from && !parsed.fromAlts && incoming && !incoming.variable && parsed.from.pos !== incoming.pos) {
         issues.push({ row: rowIdx, player: player, technik: parsed.technik, expected: incoming.pos, got: parsed.from.pos });
       }
 
@@ -90,7 +97,7 @@
 
       return {
         kind: 'stroke', player: player, label: TTV.notation.labelFor(parsed),
-        from: from, arrows: arrows, zone: zone, variable: variable
+        from: froms[0], froms: froms, arrows: arrows, zone: zone, variable: variable
       };
     }
 
