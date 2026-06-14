@@ -46,6 +46,20 @@ function loadTTV() {
   return ctx.window.TTV;
 }
 
+// i18n.js isoliert laden (mit navigator/localStorage/document-Stubs).
+function loadI18n(navLang) {
+  const ctx = {};
+  ctx.window = ctx;
+  ctx.navigator = { language: navLang || 'en' };
+  ctx.localStorage = { getItem: () => null, setItem: () => {} };
+  ctx.document = { documentElement: { setAttribute() {} }, querySelectorAll: () => [], title: '', dispatchEvent() {} };
+  ctx.CustomEvent = function () {};
+  ctx.Object = Object; ctx.Array = Array;
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'src', 'js', 'i18n.js'), 'utf8'), ctx, { filename: 'i18n.js' });
+  return ctx.window.TTV.i18n;
+}
+
 // Baum eines (gestubbten) SVG-Knotens flach auflisten.
 function flatten(node, out) {
   out = out || [];
@@ -63,6 +77,6 @@ function singleArrows(svg) { return paths(svg).filter(function (p) { return p.ge
 function texts(svg) { return byTag(svg, 'text').map(function (t) { return t.textContent; }); }
 
 module.exports = {
-  loadTTV, flatten, byTag, paths, isDashed, hasMarkerStart,
+  loadTTV, loadI18n, flatten, byTag, paths, isDashed, hasMarkerStart,
   doubleArrows, singleArrows, texts
 };

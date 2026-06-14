@@ -90,7 +90,18 @@
     return null;
   }
 
-  function fail(message) { return { type: 'error', message: message }; }
+  // Fehlermeldungen als Codes (für i18n); .message bleibt die deutsche Standardform.
+  var MSG_DE = {
+    noTech: 'Es fehlt die Technik (z. B. „VHT“).',
+    badTech: 'Ungültige Technik „{0}“ (ein Wort, „/“ für Varianten erlaubt).',
+    badFrom: 'Ungültige Start-Position „{0}“. Erlaubt: VH, RH, Mitte …',
+    badTarget: 'Ungültiges Ziel „{0}“. Erlaubt: VH, RH, Mitte, ganzer Tisch …',
+    noTarget: 'Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.'
+  };
+  function fail(code, arg) {
+    var msg = (MSG_DE[code] || code).replace('{0}', arg != null ? arg : '');
+    return { type: 'error', code: code, arg: (arg != null ? String(arg) : ''), message: msg };
+  }
 
   // Versucht ab Index i eine (ggf. mehrteilige) Position zu lesen.
   // Rückgabe: { pos, n } (n = Anzahl verbrauchter Tokens) oder null.
@@ -254,7 +265,7 @@
     }
 
     if (coreTokens.length === 0) {
-      return fail('Es fehlt die Technik (z. B. „VHT“).');
+      return fail('noTech');
     }
 
     // 1b) optionale Tiefe VOR der Technik („kurzer Aufschlag“) -> Standard-Zieltiefe
@@ -265,10 +276,10 @@
     // 2) Technik
     var technik = coreTokens[0];
     if (/^(aus|in|auf|über|oder|bis|mal)$/i.test(technik)) {
-      return fail('Es fehlt die Technik (z. B. „VHT“).');
+      return fail('noTech');
     }
     if (!TECHNIK.test(technik)) {
-      return fail('Ungültige Technik „' + technik + '“ (ein Wort, „/“ für Varianten erlaubt).');
+      return fail('badTech', technik);
     }
     var i = 1;
 
@@ -305,7 +316,7 @@
       var d1 = depthOf(coreTokens[i] || '');
       if (d1) { fromDepth = d1; i++; }
       var fp = readPosition(coreTokens, i);
-      if (!fp) return fail('Ungültige Start-Position „' + (coreTokens[i] || '') + '“. Erlaubt: VH, RH, Mitte …');
+      if (!fp) return fail('badFrom', coreTokens[i] || '');
       i += fp.n;
       // Halb-/Ganzfeld als Ursprung -> repräsentativer Punkt
       from = { pos: HALF_POINT[fp.pos] || fp.pos, depth: fromDepth };
@@ -328,14 +339,14 @@
     if (/^(in|auf|über)$/i.test(coreTokens[i] || '')) {
       i++;
       var first = readTargetItem(coreTokens, i, defDepth);
-      if (first.error) return fail(first.error);
+      if (first.error) return fail(first.code, first.arg);
       i = first.next;
       var firstPos = first.items[0].pos;
 
       if ((coreTokens[i] || '').toLowerCase() === 'bis') {
         i++;
         var second = readTargetItem(coreTokens, i, defDepth);
-        if (second.error) return fail(second.error);
+        if (second.error) return fail(second.code, second.arg);
         i = second.next;
         target = { kind: 'range', range: { from: firstPos, to: second.items[0].pos }, list: [] };
       } else if (firstPos === 'whole') {
@@ -348,7 +359,7 @@
         while ((coreTokens[i] || '').toLowerCase() === 'oder') {
           i++;
           var more = readTargetItem(coreTokens, i, defDepth);
-          if (more.error) return fail(more.error);
+          if (more.error) return fail(more.code, more.arg);
           i = more.next;
           more.items.forEach(function (it) { list.push(it); });
         }
@@ -358,7 +369,7 @@
 
     // 5) Plausibilität: ohne Ziel brauchen wir Richtung, „unregelmäßig“ oder „frei“ (offen)
     if (!target && !direction && regular !== 'unregelmaessig' && !openEnd) {
-      return fail('Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.');
+      return fail('noTarget');
     }
 
     // übrige Tokens werden tolerant ignoriert (Freitext-Zusätze in echten Mappen)
@@ -389,13 +400,13 @@
       }
     }
     var p = readPosition(tokens, i);
-    if (!p) return { error: 'Ungültiges Ziel „' + (tokens[i] || '') + '“. Erlaubt: VH, RH, Mitte, Ellbogen, ganzer Tisch …' };
+    if (!p) return { error: true, code: 'badTarget', arg: tokens[i] || '' };
     return { items: [{ pos: p.pos, depth: depth }], next: i + p.n };
   }
 
   function validateCell(rawText) {
     var parsed = parseCell(rawText);
-    if (parsed.type === 'error') return { valid: false, message: parsed.message };
+    if (parsed.type === 'error') return { valid: false, code: parsed.code, arg: parsed.arg, message: parsed.message };
     return { valid: true, message: '' };
   }
 

@@ -7,6 +7,9 @@ unregelmäßiger Platzierung und Zielbereichen. Die Grafik lässt sich als **PNG
 
 **▶️ Live: https://flocksserver.github.io/tt-exercises-vis/**
 
+Verfügbar auf **Deutsch & Englisch** (Flaggen-Umschalter oben rechts; Standard = Browsersprache,
+Fallback Englisch). Die Notations-Eingabe selbst bleibt in der gewohnten deutschen Kurzform.
+
 > Ursprünglich 2015 als Teil meiner Homepage entstanden, hier als eigenständiges Projekt
 > neu aufgebaut: ohne externe Bibliotheken (kein jQuery/D3), mit Live-Validierung,
 > responsivem SVG und den lange offenen Roadmap-Features.
@@ -73,6 +76,7 @@ src/
 ├── index.html          One-Pager (Werkzeug + Legende)
 ├── css/style.css
 └── js/
+    ├── i18n.js         Zweisprachigkeit DE/EN (Flaggen-Umschalter, Browser-Default)
     ├── notation.js     Parser & Validator der Notation
     ├── geometry.js     Tisch- und Positions-Koordinaten (Tiefen + Zonen)
     ├── resolver.js     Ballverlauf-Kette + Richtungs-Ableitung

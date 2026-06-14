@@ -32,13 +32,16 @@
     return rows;
   }
 
+  function T(k) { return TTV.i18n ? TTV.i18n.t(k) : k; }
+  function errText(res) { return res.valid ? '' : (TTV.i18n ? TTV.i18n.error(res.code, res.arg) : res.message); }
+
   function renderNow() {
     var parsedRows = buildParsedRows();
     dom.svgContainer.innerHTML = '';
     if (parsedRows.length === 0) {
       var hint = document.createElement('p');
       hint.className = 'svg-empty';
-      hint.textContent = 'Trage oben eine Übung ein – die Visualisierung erscheint hier.';
+      hint.textContent = T('svgEmpty');
       dom.svgContainer.appendChild(hint);
       return;
     }
@@ -59,7 +62,7 @@
     input.value = state[rowIndex][key];
     input.setAttribute('autocomplete', 'off');
     input.setAttribute('spellcheck', 'false');
-    input.setAttribute('aria-label', (key === 'a' ? 'Spieler A' : 'Spieler B') + ', Zeile ' + (rowIndex + 1));
+    input.setAttribute('aria-label', (TTV.i18n ? TTV.i18n.aria(key === 'a' ? 'playerA' : 'playerB') : key) + ' ' + (rowIndex + 1));
 
     var err = document.createElement('span');
     err.className = 'cell-error';
@@ -69,7 +72,7 @@
       state[rowIndex][key] = input.value;
       var res = TTV.notation.validateCell(input.value);
       if (res.valid) { input.classList.remove('invalid'); err.textContent = ''; }
-      else { input.classList.add('invalid'); err.textContent = res.message; }
+      else { input.classList.add('invalid'); err.textContent = errText(res); }
       debouncedRender();
     });
 
@@ -97,8 +100,9 @@
       remove.type = 'button';
       remove.className = 'btn-icon';
       remove.textContent = '✕';
-      remove.title = 'Zeile entfernen';
-      remove.setAttribute('aria-label', 'Zeile ' + (i + 1) + ' entfernen');
+      var rmLabel = TTV.i18n ? TTV.i18n.aria('removeRow', i + 1) : 'remove';
+      remove.title = rmLabel;
+      remove.setAttribute('aria-label', rmLabel);
       remove.disabled = state.length <= MIN_ROWS;
       remove.addEventListener('click', function () { removeRow(i); });
       actions.appendChild(remove);
@@ -115,7 +119,7 @@
       var res = TTV.notation.validateCell(input.value);
       var err = input.parentNode.querySelector('.cell-error');
       if (res.valid) { input.classList.remove('invalid'); err.textContent = ''; }
-      else { input.classList.add('invalid'); err.textContent = res.message; }
+      else { input.classList.add('invalid'); err.textContent = errText(res); }
     });
   }
 
@@ -144,17 +148,38 @@
   function updateBalleimer() {
     // Im Balleimer-Modus nur die Spalte „Spieler A“ – das Zuspiel ergibt sich aus A's Position.
     if (dom.table) dom.table.classList.toggle('hide-b', dom.multiball.checked);
+    if (dom.headB) dom.headB.innerHTML = T(dom.multiball.checked ? 'colZ' : 'colB');
   }
 
   function buildExampleButtons() {
-    EXAMPLES.forEach(function (ex) {
+    EXAMPLES.forEach(function (ex, idx) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'btn-chip';
-      btn.textContent = ex.name;
       btn.addEventListener('click', function () { loadRows(ex.rows, { multiball: ex.multiball }); });
       dom.examples.appendChild(btn);
     });
+    setExampleNames();
+  }
+
+  function setExampleNames() {
+    var btns = dom.examples.querySelectorAll('.btn-chip');
+    EXAMPLES.forEach(function (ex, idx) {
+      if (btns[idx]) btns[idx].textContent = TTV.i18n ? TTV.i18n.exampleName(idx) : ex.name;
+    });
+  }
+
+  function setYear() {
+    var y = document.getElementById('year');
+    if (y) y.textContent = new Date().getFullYear();
+  }
+
+  function onLangChange() {
+    setExampleNames();
+    updateBalleimer();
+    setYear();
+    revalidateAll();
+    renderNow();
   }
 
   function init() {
@@ -164,6 +189,7 @@
     dom.svgContainer = document.getElementById('svgContainer');
     dom.multiball = document.getElementById('multiball');
     dom.table = document.querySelector('.input-table');
+    dom.headB = document.getElementById('headB');
 
     dom.addRow.addEventListener('click', addRow);
     dom.multiball.addEventListener('change', function () { updateBalleimer(); renderNow(); });
@@ -177,11 +203,15 @@
       loadRows(DEFAULT_ROWS);
     });
 
-    var yearEl = document.getElementById('year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
+    // Sprachumschalter (Flaggen) + Reaktion auf Sprachwechsel
+    [].forEach.call(document.querySelectorAll('[data-lang-btn]'), function (b) {
+      b.addEventListener('click', function () { if (TTV.i18n) TTV.i18n.setLang(b.getAttribute('data-lang-btn')); });
+    });
+    document.addEventListener('ttv:lang', onLangChange);
 
     buildExampleButtons();
     loadRows(DEFAULT_ROWS);
+    if (TTV.i18n) TTV.i18n.apply(); else { setYear(); }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
