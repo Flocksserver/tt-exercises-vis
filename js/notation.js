@@ -68,27 +68,61 @@
       return { pos: 'whole', n: 1 };
     }
 
-    // Mitte der VH / Mitte der RH (optional mit „-Tischhälfte“ am Folgewort)
-    if (low0 === 'mitte' && (tokens[i + 1] || '').toLowerCase() === 'der') {
-      var side = (tokens[i + 2] || '').toLowerCase();
-      if (/^vh/.test(side)) return { pos: 'MitteVH', n: 3 };
-      if (/^rh/.test(side)) return { pos: 'MitteRH', n: 3 };
+    // halber Tisch RH/VH | halbe RH/VH  -> Halbfeld-Zone
+    if (/^halbe[rn]?$/.test(low0)) {
+      var h1 = (tokens[i + 1] || '').toLowerCase(), h2 = (tokens[i + 2] || '').toLowerCase();
+      if (/^tisch/.test(h1)) {
+        if (/^vh/.test(h2)) return { pos: 'halfVH', n: 3 };
+        if (/^rh/.test(h2)) return { pos: 'halfRH', n: 3 };
+      }
+      if (/^vh/.test(h1)) return { pos: 'halfVH', n: 2 };
+      if (/^rh/.test(h1)) return { pos: 'halfRH', n: 2 };
+      return null;
     }
 
-    // einzelnes Token, ggf. mit Suffix „-Bereich/-Feld/-Hälfte/-Bauch …“
-    var base = t0.replace(/[-–](bereich|feld|bauch|tischh(ä|ae)lfte|h(ä|ae)lfte|seite)$/i, '');
+    // Mitte VH / Mitte RH (mit oder ohne „der“); sonst Mitte
+    if (low0 === 'mitte') {
+      var m1 = (tokens[i + 1] || '').toLowerCase();
+      if (m1 === 'der') {
+        var side = (tokens[i + 2] || '').toLowerCase();
+        if (/^vh/.test(side)) return { pos: 'MitteVH', n: 3 };
+        if (/^rh/.test(side)) return { pos: 'MitteRH', n: 3 };
+      } else if (/^vh/.test(m1)) {
+        return { pos: 'MitteVH', n: 2 };
+      } else if (/^rh/.test(m1)) {
+        return { pos: 'MitteRH', n: 2 };
+      }
+      var mSuffix = /^(bereich|feld|seite)$/i.test(m1) ? 1 : 0;
+      return { pos: 'Mitte', n: 1 + mSuffix };
+    }
+
+    // X-Hälfte (Bindestrich) -> Halbfeld-Zone
+    if (/^vh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfVH', n: 1 };
+    if (/^rh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfRH', n: 1 };
+
+    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „RH Hälfte“)
+    var base = t0.replace(/[-–](bereich|feld|bauch|seite)$/i, '');
     var lowb = base.toLowerCase();
-    // nachfolgendes Suffix-Wort (z. B. „RH Bereich“, „VH Feld“) mitnehmen
-    var suffix = /^(bereich|feld|h(ä|ae)lfte|seite)$/i.test(tokens[i + 1] || '') ? 1 : 0;
-    if (lowb === 'vh') return { pos: 'VH', n: 1 + suffix };
-    if (lowb === 'rh') return { pos: 'RH', n: 1 + suffix };
-    if (lowb === 'mitte') return { pos: 'Mitte', n: 1 + suffix };
+    var nextLow = (tokens[i + 1] || '').toLowerCase();
+    var halfSuffix = /^h(ä|ae)lfte$/.test(nextLow);
+    var areaSuffix = /^(bereich|feld|seite)$/.test(nextLow);
+    var consume = (halfSuffix || areaSuffix) ? 1 : 0;
+    if (lowb === 'vh') return { pos: halfSuffix ? 'halfVH' : 'VH', n: 1 + consume };
+    if (lowb === 'rh') return { pos: halfSuffix ? 'halfRH' : 'RH', n: 1 + consume };
     if (/^ell(en)?bogen$/.test(lowb)) return { pos: 'Ellbogen', n: 1 };
     // „VH-Bauch“ ~ Mitte der VH
     if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
     if (/^rh[-–]bauch$/i.test(t0)) return { pos: 'MitteRH', n: 1 };
     return null;
   }
+
+  // Halbfeld/Ganzfeld als Zielzone (Bereich) übersetzen.
+  var HALF_RANGE = {
+    whole: { from: 'VH', to: 'RH' },
+    halfVH: { from: 'Mitte', to: 'VH' },
+    halfRH: { from: 'Mitte', to: 'RH' }
+  };
+  var HALF_POINT = { whole: 'Mitte', halfVH: 'MitteVH', halfRH: 'MitteRH' };
 
   function parseCell(rawText) {
     var text = (rawText == null ? '' : String(rawText)).trim().replace(/\s+/g, ' ');
@@ -149,7 +183,8 @@
       var fp = readPosition(coreTokens, i);
       if (!fp) return fail('Ungültige Start-Position „' + (coreTokens[i] || '') + '“. Erlaubt: VH, RH, Mitte …');
       i += fp.n;
-      from = { pos: fp.pos === 'whole' ? 'Mitte' : fp.pos, depth: fromDepth };
+      // Halb-/Ganzfeld als Ursprung -> repräsentativer Punkt
+      from = { pos: HALF_POINT[fp.pos] || fp.pos, depth: fromDepth };
     }
 
     // 4) optional: in|auf [TIEFE] ZIEL
@@ -169,6 +204,9 @@
         target = { kind: 'range', range: { from: first.item.pos, to: second.item.pos }, list: [] };
       } else if (first.item.pos === 'whole') {
         target = { kind: 'whole', list: [], range: null };
+      } else if (HALF_RANGE[first.item.pos]) {
+        // halber Tisch RH/VH -> Bereichs-Zone
+        target = { kind: 'range', range: HALF_RANGE[first.item.pos], list: [] };
       } else {
         var list = [first.item];
         while ((coreTokens[i] || '').toLowerCase() === 'oder') {
