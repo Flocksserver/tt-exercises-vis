@@ -1,57 +1,88 @@
 /*
  * notation.js — Parser & Validator für die Übungs-Notation.
  *
- * Erweiterte, tolerante Grammatik (alle Teile außer der Technik sind optional):
+ * Grammatik (Spec, EBNF; tolerant – Unbekanntes wird übersprungen, Synonyme s. LEXICON):
  *
- *   [N[-M] mal | (Nx)] TECHNIK [RICHTUNG] [aus [TIEFE] POSITION] [in|auf [TIEFE] ZIEL]
- *                      [regelmäßig|unregelmäßig|wechselnd]
- *   Frei | endlos
+ *   Zelle      = 'frei' | 'endlos' | Schlag ( 'oder' Schlag )* ;
+ *   Schlag     = [ Wiederh ] TECHNIK ( 'oder' TECHNIK )* [ RICHTUNG ]
+ *                [ 'aus' Ort ( 'oder' Ort )* ] [ ('in'|'auf'|'über') Ziel ]
+ *                [ REGELMASS ] ;
+ *   Wiederh    = N['-'M] [ 'mal' | 'x' ] | '(' N['-'M] 'x' ')' ;
+ *   Ort        = [ TIEFE ] POSITION ;
+ *   Ziel       = ZielTeil ( 'oder' ZielTeil )* | POSITION 'bis' POSITION ;
+ *   ZielTeil   = [ TIEFE ] ( POSITION | POSITION'/'POSITION… ) ;
+ *   TECHNIK    = ein Wort, auch „/“-Varianten und „-“ (VHT, RHK/RHT, US-Aufschlag) ;
+ *   RICHTUNG   = diagonal | parallel ;
+ *   TIEFE      = kurz | halblang | lang ;
+ *   POSITION   = VH | RH | Mitte | Mitte[ der ]VH/RH | Ellbogen
+ *              | ganzer Tisch | halber Tisch VH/RH | …-Bereich/-Feld/-Hälfte/-Ecke ;
+ *   REGELMASS  = regelmäßig | unregelmäßig | wechselnd ;
  *
- *   TECHNIK   = ein Wort, auch Alternative mit „/“ (VHT, RHK/RHT, Schupf, Aufschlag, AS)
- *   RICHTUNG  = diagonal | parallel
- *   TIEFE     = kurz | halblang | lang
- *   POSITION  = VH | RH | Mitte | Mitte der VH | Mitte der RH | Ellbogen
- *               | VH-Bereich/RH-Bereich (… „-Bereich“ wird ignoriert)
- *               | ganzer Tisch | ganze Tischhälfte
- *   ZIEL      = POSITION [oder [TIEFE] POSITION]…   |   POSITION bis POSITION
- *
- * Fehlt „aus …“, wird der Ursprung später aus dem Ballverlauf abgeleitet (resolver.js).
- * Fehlt „in …“, wird das Ziel aus der Richtung + Ursprung abgeleitet.
+ * Semantik (resolver.js): fehlt „aus", kommt der Ursprung aus dem Ballverlauf (bzw. der
+ * Schlaghand beim ersten Schlag); fehlt das Ziel, wird es aus der Richtung abgeleitet.
+ * Kurzformen/Synonyme (Mi, tiefe, Wechselpunkt, o., …) zentral im LEXICON-Objekt.
  *
  * parseCell(text) -> { type, … }:
- *   { type:'empty' } | { type:'frei' } | { type:'endlos' } | { type:'error', message }
- *   { type:'stroke', repeat, technik, direction, regular,
- *     from: {pos,depth}|null,
- *     target: { kind:'positions'|'range'|'whole', list:[{pos,depth}], range:{from,to} }|null }
+ *   'empty' | 'frei' | 'endlos' | 'error'(message)
+ *   'stroke': { repeat, technik, direction, regular, strokeDepth,
+ *               from:{pos,depth}|null, fromAlts:[…]|null,
+ *               target:{ kind:'positions'|'range'|'whole', list:[{pos,depth}], range }|null }
+ *   'alternatives': { variants:[stroke,…] }   // ganze Schläge mit „oder"
  *
- * pos  ∈ VH | RH | Mitte | MitteVH | MitteRH | Ellbogen | whole
+ * pos  ∈ VH | RH | Mitte | MitteVH | MitteRH | Ellbogen | whole | halfVH | halfRH
  * depth∈ kurz | halblang | lang
  */
 (function (TTV) {
   'use strict';
 
-  var KURZ = /^(kurz|kurze|kurzer|kurzes|kurzen|kurzem)$/i;
-  var LANG = /^(lang|lange|langer|langes|langen|langem)$/i;
-  var TIEF = /^(tief|tiefe|tiefer|tiefes|tiefen|tiefem)$/i;   // „tiefe VH“ = lang
-  var HALBLANG = /^halblang(e|er|es|en|em)?$/i;
-  var DIAGONAL = /^diagonal(e|er)?$/i;
-  var PARALLEL = /^parallel(e|er)?$/i;
-  var MAL = /^mal$/i;
+  // ─── Lexikon: Synonyme/Kurzformen an EINER Stelle (datengetrieben) ───
+  // Neues Synonym aufnehmen = hier eine Zeile ergänzen, kein Code-Eingriff.
+  var LEXICON = {
+    depth: {                 // Wort -> Tiefe
+      kurz: ['kurz', 'kurze', 'kurzer', 'kurzes', 'kurzen', 'kurzem'],
+      halblang: ['halblang', 'halblange', 'halblanger', 'halblanges', 'halblangen', 'halblangem'],
+      lang: ['lang', 'lange', 'langer', 'langes', 'langen', 'langem',
+             'tief', 'tiefe', 'tiefer', 'tiefes', 'tiefen', 'tiefem']    // „tiefe VH“ = lang
+    },
+    direction: {             // Wort -> Richtung
+      diagonal: ['diagonal', 'diagonale', 'diagonaler'],
+      parallel: ['parallel', 'parallele', 'paralleler']
+    },
+    regular: {               // Präfix -> Regelmäßigkeit (unregel… vor regel… prüfen)
+      unregelmaessig: ['unregelm'],
+      regelmaessig: ['regelm'],
+      wechselnd: ['wechselnd', 'abwechselnd']
+    },
+    article: ['den', 'die', 'das', 'der', 'dem', 'eine', 'einen', 'einer'],
+    position: {              // Ein-Wort-Synonyme -> kanonische Position
+      Mitte: ['mitte', 'mi'],
+      Ellbogen: ['ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt']
+    }
+  };
+
+  function reverse(map) {
+    var r = {};
+    Object.keys(map).forEach(function (k) { map[k].forEach(function (w) { r[w] = k; }); });
+    return r;
+  }
+  var DEPTH_OF = reverse(LEXICON.depth);
+  var DIR_OF = reverse(LEXICON.direction);
+  var POS_OF = reverse(LEXICON.position);   // mitte/mi -> Mitte · eb/bauch/wechselpunkt/… -> Ellbogen
+  var ARTICLE = {}; LEXICON.article.forEach(function (w) { ARTICLE[w] = true; });
+
   // Technik: ein Wort, auch mit „/“ (Varianten) und „-“ (US-Aufschlag, VH-Flip, RH-Banane)
   var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/\-]*[A-Za-zÄÖÜäöüß0-9])?$/;
+  var AREA_SUFFIX = /^(bereich|feld|seite|ecke)$/i;   // Flächen-Suffix -> Punkt
+  var HALF_SUFFIX = /^h(ä|ae)lfte$/i;                 // Halbfeld-Suffix -> Zone
 
-  function depthOf(token) {
-    if (KURZ.test(token)) return 'kurz';
-    if (HALBLANG.test(token)) return 'halblang';
-    if (LANG.test(token) || TIEF.test(token)) return 'lang';
-    return null;
-  }
-
+  function depthOf(token) { return DEPTH_OF[String(token).toLowerCase()] || null; }
+  function directionOf(token) { return DIR_OF[String(token).toLowerCase()] || null; }
   function regularOf(token) {
-    var t = token.toLowerCase();
-    if (/^unregelm(ä|ae)(ß|ss)ig/.test(t)) return 'unregelmaessig';
-    if (/^regelm(ä|ae)(ß|ss)ig/.test(t)) return 'regelmaessig';
-    if (/^(ab)?wechselnd/.test(t)) return 'wechselnd';
+    var t = String(token).toLowerCase();
+    var keys = ['unregelmaessig', 'regelmaessig', 'wechselnd'];
+    for (var i = 0; i < keys.length; i++) {
+      if (LEXICON.regular[keys[i]].some(function (p) { return t.indexOf(p) === 0; })) return keys[i];
+    }
     return null;
   }
 
@@ -64,13 +95,13 @@
     var low0 = t0.toLowerCase();
 
     // Artikel überspringen („auf den Wechselpunkt“, „in die Ecke“)
-    if (/^(den|die|das|der|dem|eine|einen|einer)$/.test(low0)) {
+    if (ARTICLE[low0]) {
       var inner = readPosition(tokens, i + 1);
       return inner ? { pos: inner.pos, n: inner.n + 1 } : null;
     }
 
-    // Wechselpunkt / Ellbogen / Bauch (Übergangspunkt) – inkl. Abkürzung EB
-    if (/^(wechselpunkt|ellbogen|ellenbogen|eb|bauch)$/.test(low0)) return { pos: 'Ellbogen', n: 1 };
+    // Ein-Wort-Synonyme (Ellbogen/Wechselpunkt/EB/Bauch …); Mitte hat eigene Logik unten
+    if (POS_OF[low0] === 'Ellbogen') return { pos: 'Ellbogen', n: 1 };
 
     // ganzer Tisch / ganze Tischhälfte
     if (/^ganze[rn]?$/.test(low0)) {
@@ -92,7 +123,7 @@
     }
 
     // Mitte VH / Mitte RH (mit oder ohne „der“); sonst Mitte. „Mi“ = Kurzform.
-    if (low0 === 'mitte' || low0 === 'mi') {
+    if (POS_OF[low0] === 'Mitte') {
       var m1 = (tokens[i + 1] || '').toLowerCase();
       if (m1 === 'der') {
         var side = (tokens[i + 2] || '').toLowerCase();
@@ -103,27 +134,26 @@
       } else if (/^rh/.test(m1)) {
         return { pos: 'MitteRH', n: 2 };
       }
-      var mSuffix = /^(bereich|feld|seite)$/i.test(m1) ? 1 : 0;
-      return { pos: 'Mitte', n: 1 + mSuffix };
+      return { pos: 'Mitte', n: 1 + (AREA_SUFFIX.test(m1) ? 1 : 0) };
     }
 
     // X-Hälfte (Bindestrich) -> Halbfeld-Zone
     if (/^vh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfVH', n: 1 };
     if (/^rh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfRH', n: 1 };
 
+    // „VH-Bauch“ ~ Mitte der VH (bare „Bauch“ wird oben zu Ellbogen)
+    if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
+    if (/^rh[-–]bauch$/i.test(t0)) return { pos: 'MitteRH', n: 1 };
+
     // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „RH Hälfte“, „VH Ecke“)
-    var base = t0.replace(/[-–](bereich|feld|bauch|seite|ecke)$/i, '');
+    var base = t0.replace(/[-–](bereich|feld|seite|ecke)$/i, '');
     var lowb = base.toLowerCase();
     var nextLow = (tokens[i + 1] || '').toLowerCase();
-    var halfSuffix = /^h(ä|ae)lfte$/.test(nextLow);
-    var areaSuffix = /^(bereich|feld|seite|ecke)$/.test(nextLow);
+    var halfSuffix = HALF_SUFFIX.test(nextLow);
+    var areaSuffix = AREA_SUFFIX.test(nextLow);
     var consume = (halfSuffix || areaSuffix) ? 1 : 0;
     if (lowb === 'vh') return { pos: halfSuffix ? 'halfVH' : 'VH', n: 1 + consume };
     if (lowb === 'rh') return { pos: halfSuffix ? 'halfRH' : 'RH', n: 1 + consume };
-    if (/^ell(en)?bogen$/.test(lowb)) return { pos: 'Ellbogen', n: 1 };
-    // „VH-Bauch“ ~ Mitte der VH
-    if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
-    if (/^rh[-–]bauch$/i.test(t0)) return { pos: 'MitteRH', n: 1 };
     return null;
   }
 
@@ -151,7 +181,7 @@
           segs.push(cur.join(' ')); cur = []; hasTarget = false; continue;
         }
       }
-      if (/^(in|auf)$/.test(lw) || DIAGONAL.test(tokens[k]) || PARALLEL.test(tokens[k])) hasTarget = true;
+      if (/^(in|auf|über)$/.test(lw) || directionOf(tokens[k])) hasTarget = true;
       cur.push(tokens[k]);
     }
     segs.push(cur.join(' '));
@@ -199,8 +229,8 @@
     var coreTokens = [];
     text.trim().split(/\s+/).forEach(function (tok) {
       if (!tok) return;
-      if (DIAGONAL.test(tok)) { direction = 'diagonal'; return; }
-      if (PARALLEL.test(tok)) { direction = 'parallel'; return; }
+      var dir = directionOf(tok);
+      if (dir) { direction = dir; return; }
       var r = regularOf(tok);
       if (r) { regular = r; return; }
       coreTokens.push(tok);
