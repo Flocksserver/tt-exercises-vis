@@ -1,0 +1,10 @@
+{
+  "name": "tt-exercises-vis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tischtennis-Übungsdesign-Visualisierer",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

@@ -81,6 +81,19 @@ src/
     └── app.js          UI, Live-Validierung, Auto-Render
 ```
 
+## Tests
+
+Reine Node-Tests (eingebauter Test-Runner, **keine** Abhängigkeiten). Die Browser-Module
+werden über ein winziges `document`-Stub geladen, sodass auch der Renderer ohne Browser
+prüfbar ist.
+
+```bash
+npm test          # oder: node --test tests/*.test.js
+```
+
+Abgedeckt: Notation-Parser, Geometrie, Resolver (Ballverlauf-Kette, Richtung) und Renderer
+(Doppelpfeil-Merge, „oder“-Strichelung, Zonen, Balleimer, Labels) plus Randfälle.
+
 ## Deployment
 
 Der Quellcode liegt im Branch `main` unter `src/`. Veröffentlicht wird der **Inhalt von
