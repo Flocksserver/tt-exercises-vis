@@ -57,7 +57,9 @@
     position: {              // Ein-Wort-Synonyme -> kanonische Position
       Mitte: ['mitte', 'mi'],
       Ellbogen: ['ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt']
-    }
+    },
+    // Schnitt-/Rotations-Annotationen („mit US“, „auf Unterschnitt“) -> ignoriert
+    spin: ['us', 'üs', 'uüs', 'unterschnitt', 'überschnitt', 'seitschnitt', 'schnitt', 'rotation', 'spin']
   };
 
   function reverse(map) {
@@ -69,10 +71,11 @@
   var DIR_OF = reverse(LEXICON.direction);
   var POS_OF = reverse(LEXICON.position);   // mitte/mi -> Mitte · eb/bauch/wechselpunkt/… -> Ellbogen
   var ARTICLE = {}; LEXICON.article.forEach(function (w) { ARTICLE[w] = true; });
+  var SPIN = {}; LEXICON.spin.forEach(function (w) { SPIN[w] = true; });
 
   // Technik: ein Wort, auch mit „/“ (Varianten) und „-“ (US-Aufschlag, VH-Flip, RH-Banane)
   var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/\-]*[A-Za-zÄÖÜäöüß0-9])?$/;
-  var AREA_SUFFIX = /^(bereich|feld|seite|ecke)$/i;   // Flächen-Suffix -> Punkt
+  var AREA_SUFFIX = /^(bereich|feld|seite|ecke|diagonale)$/i;   // Flächen-Suffix -> Punkt
   var HALF_SUFFIX = /^h(ä|ae)lfte$/i;                 // Halbfeld-Suffix -> Zone
 
   function depthOf(token) { return DEPTH_OF[String(token).toLowerCase()] || null; }
@@ -145,8 +148,8 @@
     if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
     if (/^rh[-–]bauch$/i.test(t0)) return { pos: 'MitteRH', n: 1 };
 
-    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „RH Hälfte“, „VH Ecke“)
-    var base = t0.replace(/[-–](bereich|feld|seite|ecke)$/i, '');
+    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „VH Ecke“, „RH-Diagonale“)
+    var base = t0.replace(/[-–](bereich|feld|seite|ecke|diagonale)$/i, '');
     var lowb = base.toLowerCase();
     var nextLow = (tokens[i + 1] || '').toLowerCase();
     var halfSuffix = HALF_SUFFIX.test(nextLow);
@@ -236,6 +239,12 @@
       coreTokens.push(tok);
     });
 
+    // abschließendes „frei“ („VHT aus Mitte frei“) = offener Schlag ohne festes Ziel
+    var openEnd = false;
+    if (coreTokens.length > 1 && (coreTokens[coreTokens.length - 1] || '').toLowerCase() === 'frei') {
+      coreTokens.pop(); openEnd = true;
+    }
+
     if (coreTokens.length === 0) {
       return fail('Es fehlt die Technik (z. B. „VHT“).');
     }
@@ -247,6 +256,9 @@
 
     // 2) Technik
     var technik = coreTokens[0];
+    if (/^(aus|in|auf|über|oder|bis|mal)$/i.test(technik)) {
+      return fail('Es fehlt die Technik (z. B. „VHT“).');
+    }
     if (!TECHNIK.test(technik)) {
       return fail('Ungültige Technik „' + technik + '“ (ein Wort, „/“ für Varianten erlaubt).');
     }
@@ -261,6 +273,21 @@
       technik += '/' + coreTokens[i + 1];
       i += 2;
     }
+
+    // Tolerant: unbekannten Freitext / Schnitt-Annotationen bis „aus“ oder echter
+    // Präposition überspringen („mit viel Rotation“, „auf Unterschnitt …“, „zurück“).
+    function skipNoise() {
+      while (i < coreTokens.length) {
+        var w = (coreTokens[i] || '').toLowerCase();
+        if (w === 'aus' || w === 'bis' || w === 'oder') return;
+        if (/^(in|auf|über)$/.test(w)) {
+          if (SPIN[(coreTokens[i + 1] || '').toLowerCase()]) { i += 2; continue; } // „auf Unterschnitt“
+          return;                                                                   // echte Präposition
+        }
+        i++;
+      }
+    }
+    skipNoise();
 
     // 3) optional: aus [TIEFE] POSITION [oder [TIEFE] POSITION]…
     var from = null, fromAlts = [];
@@ -284,6 +311,8 @@
         fromAlts.push({ pos: HALF_POINT[fa.pos] || fa.pos, depth: da || 'lang' });
       }
     }
+
+    skipNoise();   // Freitext zwischen Ursprung und Ziel überspringen
 
     // 4) optional: in|auf|über [TIEFE] ZIEL
     var target = null;
@@ -319,8 +348,8 @@
       }
     }
 
-    // 5) Plausibilität: ohne Ziel brauchen wir Richtung ODER „unregelmäßig“ (variabel)
-    if (!target && !direction && regular !== 'unregelmaessig') {
+    // 5) Plausibilität: ohne Ziel brauchen wir Richtung, „unregelmäßig“ oder „frei“ (offen)
+    if (!target && !direction && regular !== 'unregelmaessig' && !openEnd) {
       return fail('Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.');
     }
 
