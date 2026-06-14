@@ -46,6 +46,14 @@ test('Richtung leitet Ziel ab, wenn kein in', () => {
   assert.equal(s0(res[0].a).arrows[0].to.pos, 'VH');   // RH parallel -> VH
 });
 
+test('Richtungs-Alternativen -> ein Pfeil je Richtung (gestrichelt)', () => {
+  const res = seq([['VHT aus VH diagonal oder parallel', 'frei']]);
+  const a = s0(res[0].a);
+  assert.equal(a.arrows.length, 2);
+  assert.deepEqual(a.arrows.map(x => x.to.pos).sort(), ['RH', 'VH']);  // diagonal->VH, parallel->RH
+  assert.ok(a.arrows.every(x => x.dashed));
+});
+
 test('unregelmäßig ohne Ziel -> Zone über ganzen Tisch', () => {
   const res = seq([['Block unregelmäßig', 'frei']]);
   assert.ok(s0(res[0].a).zone, 'Zone gesetzt');

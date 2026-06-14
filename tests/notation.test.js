@@ -64,6 +64,15 @@ test('Richtung diagonal/parallel, längs entfällt', () => {
   assert.equal(P('VHT aus RH längs').type, 'error');   // längs nicht mehr erlaubt
 });
 
+test('Richtungs-Alternativen (diagonal oder parallel)', () => {
+  var r = P('VHT aus VH diagonal oder parallel');
+  assert.equal(r.type, 'stroke');
+  assert.deepEqual(r.directions, ['diagonal', 'parallel']);
+  assert.deepEqual(r.from, { pos: 'VH', depth: 'lang' });
+  assert.equal(r.target, null);   // Ziel wird aus den Richtungen abgeleitet
+  assert.equal(TTV.notation.labelFor(r), 'VHT diag/parallel');
+});
+
 test('Alternativen (oder), beliebig viele', () => {
   const r = P('VHT aus VH in Mitte oder RH');
   assert.equal(r.target.list.length, 2);
