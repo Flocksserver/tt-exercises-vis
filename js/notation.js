@@ -39,28 +39,40 @@
   // ─── Lexikon: Synonyme/Kurzformen an EINER Stelle (datengetrieben) ───
   // Neues Synonym aufnehmen = hier eine Zeile ergänzen, kein Code-Eingriff.
   var LEXICON = {
-    depth: {                 // Wort -> Tiefe
-      kurz: ['kurz', 'kurze', 'kurzer', 'kurzes', 'kurzen', 'kurzem'],
-      halblang: ['halblang', 'halblange', 'halblanger', 'halblanges', 'halblangen', 'halblangem'],
+    depth: {                 // Wort -> Tiefe (DE + EN)
+      kurz: ['kurz', 'kurze', 'kurzer', 'kurzes', 'kurzen', 'kurzem', 'short'],
+      halblang: ['halblang', 'halblange', 'halblanger', 'halblanges', 'halblangen', 'halblangem', 'half-long', 'halflong'],
       lang: ['lang', 'lange', 'langer', 'langes', 'langen', 'langem',
-             'tief', 'tiefe', 'tiefer', 'tiefes', 'tiefen', 'tiefem']    // „tiefe VH“ = lang
+             'tief', 'tiefe', 'tiefer', 'tiefes', 'tiefen', 'tiefem', 'long', 'deep']
     },
-    direction: {             // Wort -> Richtung
-      diagonal: ['diagonal', 'diagonale', 'diagonaler'],
-      parallel: ['parallel', 'parallele', 'paralleler']
+    direction: {             // Wort -> Richtung (DE + EN)
+      diagonal: ['diagonal', 'diagonale', 'diagonaler', 'cross', 'crosscourt'],
+      parallel: ['parallel', 'parallele', 'paralleler', 'straight', 'longline', 'down-the-line']
     },
     regular: {               // Präfix -> Regelmäßigkeit (unregel… vor regel… prüfen)
-      unregelmaessig: ['unregelm'],
-      regelmaessig: ['regelm'],
-      wechselnd: ['wechselnd', 'abwechselnd']
+      unregelmaessig: ['unregelm', 'irregular', 'random'],
+      regelmaessig: ['regelm', 'regular'],
+      wechselnd: ['wechselnd', 'abwechselnd', 'alternating']
     },
-    article: ['den', 'die', 'das', 'der', 'dem', 'eine', 'einen', 'einer'],
-    position: {              // Ein-Wort-Synonyme -> kanonische Position
-      // Ellbogen/Ellenbogen/Wechselpunkt/Bauch = Synonyme für Mitte
-      Mitte: ['mitte', 'mi', 'ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt']
+    article: ['den', 'die', 'das', 'der', 'dem', 'eine', 'einen', 'einer', 'the', 'a', 'an'],
+    position: {              // Ein-Wort-Synonyme -> kanonische Position (DE + EN)
+      // Ellbogen/Ellenbogen/Wechselpunkt/Bauch/elbow = Synonyme für Mitte
+      Mitte: ['mitte', 'mi', 'middle', 'mid', 'center', 'centre', 'ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt', 'elbow']
     },
-    // Schnitt-/Rotations-Annotationen („mit US“, „auf Unterschnitt“) -> ignoriert
-    spin: ['us', 'üs', 'uüs', 'unterschnitt', 'überschnitt', 'seitschnitt', 'schnitt', 'rotation', 'spin']
+    // Seiten-Synonyme (für VH/RH-Erkennung in Positionen/Zonen)
+    side: { vh: ['vh', 'fh', 'forehand'], rh: ['rh', 'bh', 'backhand'] },
+    // Schnitt-/Rotations-Annotationen -> ignoriert (DE + EN)
+    spin: ['us', 'üs', 'uüs', 'unterschnitt', 'überschnitt', 'seitschnitt', 'schnitt', 'rotation', 'spin',
+           'topspin', 'backspin', 'sidespin', 'underspin', 'no-spin', 'nospin'],
+    // Schlüsselwörter nach Rolle (DE + EN)
+    from: ['aus', 'from'],
+    prep: ['in', 'auf', 'über', 'to', 'into', 'on', 'over'],   // Ziel-Präposition
+    range: ['bis', 'through', 'thru', 'to'],                    // „… bis …“ / „… to …“
+    alt: ['oder', 'or'],
+    tisch: ['tisch', 'tischhälfte', 'tischhaelfte', 'table'],   // „ganzer Tisch“ / „whole table“
+    whole: ['ganze', 'ganzer', 'ganzen', 'whole', 'full'],
+    half: ['halbe', 'halber', 'halben', 'half'],
+    der: ['der', 'of']                                          // „Mitte der VH“ / „middle of FH“
   };
 
   function reverse(map) {
@@ -68,16 +80,23 @@
     Object.keys(map).forEach(function (k) { map[k].forEach(function (w) { r[w] = k; }); });
     return r;
   }
+  function setOf(arr) { var s = {}; arr.forEach(function (w) { s[w] = true; }); return s; }
   var DEPTH_OF = reverse(LEXICON.depth);
   var DIR_OF = reverse(LEXICON.direction);
-  var POS_OF = reverse(LEXICON.position);   // mitte/mi -> Mitte · eb/bauch/wechselpunkt/… -> Ellbogen
-  var ARTICLE = {}; LEXICON.article.forEach(function (w) { ARTICLE[w] = true; });
-  var SPIN = {}; LEXICON.spin.forEach(function (w) { SPIN[w] = true; });
+  var POS_OF = reverse(LEXICON.position);
+  var SIDE_OF = reverse(LEXICON.side);      // vh/fh/forehand -> vh · rh/bh/backhand -> rh
+  var ARTICLE = setOf(LEXICON.article);
+  var SPIN = setOf(LEXICON.spin);
+  var FROM = setOf(LEXICON.from), PREP = setOf(LEXICON.prep), RANGE = setOf(LEXICON.range), ALT = setOf(LEXICON.alt);
+  var WHOLE = setOf(LEXICON.whole), HALFW = setOf(LEXICON.half), TISCH = setOf(LEXICON.tisch), DER = setOf(LEXICON.der);
+  var RESERVED = setOf(LEXICON.from.concat(LEXICON.prep, LEXICON.range, LEXICON.alt, ['mal', 'times', 'x']));
+  function lc(s) { return String(s == null ? '' : s).toLowerCase(); }
+  function sideOf(tok) { return SIDE_OF[lc(tok)] || null; }   // 'vh' | 'rh' | null
 
   // Technik: ein Wort, auch mit „/“ (Varianten) und „-“ (US-Aufschlag, VH-Flip, RH-Banane)
   var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/\-]*[A-Za-zÄÖÜäöüß0-9])?$/;
-  var AREA_SUFFIX = /^(bereich|feld|seite|ecke|diagonale)$/i;   // Flächen-Suffix -> Punkt
-  var HALF_SUFFIX = /^h(ä|ae)lfte$/i;                 // Halbfeld-Suffix -> Zone
+  var AREA_SUFFIX = /^(bereich|feld|seite|ecke|diagonale|area|corner|field|side)$/i;   // Flächen-Suffix -> Punkt
+  var HALF_SUFFIX = /^(h(ä|ae)lfte|half)$/i;          // Halbfeld-Suffix -> Zone
 
   function depthOf(token) { return DEPTH_OF[String(token).toLowerCase()] || null; }
   function directionOf(token) { return DIR_OF[String(token).toLowerCase()] || null; }
@@ -115,57 +134,58 @@
       return inner ? { pos: inner.pos, n: inner.n + 1 } : null;
     }
 
-    // ganzer Tisch / ganze Tischhälfte
-    if (/^ganze[rn]?$/.test(low0)) {
-      var nxt = (tokens[i + 1] || '').toLowerCase();
-      if (/^tisch/.test(nxt) || /^tischh(ä|ae)lfte/.test(nxt)) return { pos: 'whole', n: 2 };
-      return { pos: 'whole', n: 1 };
+    // ganzer Tisch / ganze Tischhälfte / whole table / full table
+    if (WHOLE[low0]) {
+      return TISCH[lc(tokens[i + 1])] ? { pos: 'whole', n: 2 } : { pos: 'whole', n: 1 };
     }
 
-    // halber Tisch RH/VH | halbe RH/VH  -> Halbfeld-Zone
-    if (/^halbe[rn]?$/.test(low0)) {
-      var h1 = (tokens[i + 1] || '').toLowerCase(), h2 = (tokens[i + 2] || '').toLowerCase();
-      if (/^tisch/.test(h1)) {
-        if (/^vh/.test(h2)) return { pos: 'halfVH', n: 3 };
-        if (/^rh/.test(h2)) return { pos: 'halfRH', n: 3 };
+    // halber Tisch RH/VH | halbe RH/VH | half table FH | half FH  -> Halbfeld-Zone
+    if (HALFW[low0]) {
+      var h1 = lc(tokens[i + 1]), h2 = lc(tokens[i + 2]);
+      if (TISCH[h1]) {
+        if (sideOf(h2) === 'vh') return { pos: 'halfVH', n: 3 };
+        if (sideOf(h2) === 'rh') return { pos: 'halfRH', n: 3 };
       }
-      if (/^vh/.test(h1)) return { pos: 'halfVH', n: 2 };
-      if (/^rh/.test(h1)) return { pos: 'halfRH', n: 2 };
+      if (sideOf(h1) === 'vh') return { pos: 'halfVH', n: 2 };
+      if (sideOf(h1) === 'rh') return { pos: 'halfRH', n: 2 };
       return null;
     }
 
-    // Mitte VH / Mitte RH (mit oder ohne „der“); sonst Mitte. „Mi“ = Kurzform.
+    // Mitte VH/RH (mit/ohne „der“/„of“) | middle of FH | mid BH; sonst Mitte
     if (POS_OF[low0] === 'Mitte') {
-      var m1 = (tokens[i + 1] || '').toLowerCase();
-      if (m1 === 'der') {
-        var side = (tokens[i + 2] || '').toLowerCase();
-        if (/^vh/.test(side)) return { pos: 'MitteVH', n: 3 };
-        if (/^rh/.test(side)) return { pos: 'MitteRH', n: 3 };
-      } else if (/^vh/.test(m1)) {
+      var m1 = lc(tokens[i + 1]);
+      if (DER[m1]) {
+        var k = i + 2;
+        if (ARTICLE[lc(tokens[k])]) k++;          // „middle of the FH“
+        var s = sideOf(tokens[k]);
+        if (s === 'vh') return { pos: 'MitteVH', n: k - i + 1 };
+        if (s === 'rh') return { pos: 'MitteRH', n: k - i + 1 };
+      } else if (sideOf(m1) === 'vh') {
         return { pos: 'MitteVH', n: 2 };
-      } else if (/^rh/.test(m1)) {
+      } else if (sideOf(m1) === 'rh') {
         return { pos: 'MitteRH', n: 2 };
       }
       return { pos: 'Mitte', n: 1 + (AREA_SUFFIX.test(m1) ? 1 : 0) };
     }
 
-    // X-Hälfte (Bindestrich) -> Halbfeld-Zone
-    if (/^vh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfVH', n: 1 };
-    if (/^rh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfRH', n: 1 };
+    // X-Hälfte / X-half (Bindestrich) -> Halbfeld-Zone
+    var hm = t0.match(/^([a-zäöü]+)[-–](?:h(?:ä|ae)lfte|half)$/i);
+    if (hm && sideOf(hm[1])) return { pos: sideOf(hm[1]) === 'vh' ? 'halfVH' : 'halfRH', n: 1 };
 
-    // „VH-Bauch“ ~ Mitte der VH (bare „Bauch“ wird oben zu Ellbogen)
-    if (/^vh[-–]bauch$/i.test(t0)) return { pos: 'MitteVH', n: 1 };
-    if (/^rh[-–]bauch$/i.test(t0)) return { pos: 'MitteRH', n: 1 };
+    // „VH-Bauch“ ~ Mitte der VH (bare „Bauch“ wird oben zu Mitte)
+    var bm = t0.match(/^([a-zäöü]+)[-–]bauch$/i);
+    if (bm && sideOf(bm[1])) return { pos: sideOf(bm[1]) === 'vh' ? 'MitteVH' : 'MitteRH', n: 1 };
 
-    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „VH Ecke“, „RH-Diagonale“)
-    var base = t0.replace(/[-–](bereich|feld|seite|ecke|diagonale)$/i, '');
-    var lowb = base.toLowerCase();
-    var nextLow = (tokens[i + 1] || '').toLowerCase();
-    var halfSuffix = HALF_SUFFIX.test(nextLow);
-    var areaSuffix = AREA_SUFFIX.test(nextLow);
-    var consume = (halfSuffix || areaSuffix) ? 1 : 0;
-    if (lowb === 'vh') return { pos: halfSuffix ? 'halfVH' : 'VH', n: 1 + consume };
-    if (lowb === 'rh') return { pos: halfSuffix ? 'halfRH' : 'RH', n: 1 + consume };
+    // einzelnes VH/RH/FH/BH, ggf. mit Suffix-Wort („RH Bereich“, „FH area“, „RH-Diagonale“)
+    var base = t0.replace(/[-–](bereich|feld|seite|ecke|diagonale|area|corner|field|side)$/i, '');
+    var sb = sideOf(base);
+    if (sb) {
+      var nextLow = lc(tokens[i + 1]);
+      var halfSuffix = HALF_SUFFIX.test(nextLow);
+      var consume = (halfSuffix || AREA_SUFFIX.test(nextLow)) ? 1 : 0;
+      if (sb === 'vh') return { pos: halfSuffix ? 'halfVH' : 'VH', n: 1 + consume };
+      return { pos: halfSuffix ? 'halfRH' : 'RH', n: 1 + consume };
+    }
     return null;
   }
 
@@ -184,7 +204,7 @@
     var segs = [], cur = [], hasTarget = false;
     for (var k = 0; k < tokens.length; k++) {
       var lw = tokens[k].toLowerCase();
-      if (lw === 'oder' && !directionOf(tokens[k + 1] || '')) {   // „… oder <Richtung>" bleibt zusammen
+      if (ALT[lw] && !directionOf(tokens[k + 1] || '')) {   // „… oder <Richtung>" bleibt zusammen
         var j = k + 1;
         if (depthOf(tokens[j] || '')) j++;
         // neuer Schlag nur, wenn der bisherige schon ein Ziel/eine Richtung hat UND
@@ -193,7 +213,7 @@
           segs.push(cur.join(' ')); cur = []; hasTarget = false; continue;
         }
       }
-      if (/^(in|auf|über)$/.test(lw) || directionOf(tokens[k])) hasTarget = true;
+      if (PREP[lw] || directionOf(tokens[k])) hasTarget = true;
       cur.push(tokens[k]);
     }
     segs.push(cur.join(' '));
@@ -212,8 +232,8 @@
   function parseCell(rawText) {
     var text = normalizeCell(rawText == null ? '' : String(rawText));
     if (text === '') return { type: 'empty' };
-    if (/^frei$/i.test(text)) return { type: 'frei' };
-    if (/^endlos$/i.test(text)) return { type: 'endlos' };
+    if (/^(frei|free)$/i.test(text)) return { type: 'frei' };
+    if (/^(endlos|endless)$/i.test(text)) return { type: 'endlos' };
 
     var segs = splitAlternatives(text);
     if (segs.length > 1) {
@@ -233,7 +253,7 @@
     var repeat = null, direction = null, regular = null;
 
     text = text.replace(/\((\d+(?:-\d+)?)\s*x\)/i, function (_, n) { repeat = n; return ' '; });
-    text = text.replace(/\b(\d+(?:-\d+)?)\s*mal\b/i, function (_, n) { repeat = repeat || n; return ' '; });
+    text = text.replace(/\b(\d+(?:-\d+)?)\s*(?:mal|times)\b/i, function (_, n) { repeat = repeat || n; return ' '; });
     text = text.replace(/\b(\d+(?:-\d+)?)\s*x\b/i, function (_, n) { repeat = repeat || n; return ' '; });
     // führende Zahl ohne „mal“ (z. B. „1-2 VHB“, „0-1 RHT“, „2+ VHT“)
     text = text.replace(/^\s*(\d+(?:-\d+)?\+?)\s+(?=\S)/, function (_, n) { repeat = repeat || n; return ''; });
@@ -247,7 +267,7 @@
       if (dir) {
         directions.push(dir);
         // „diagonal oder parallel“ -> Richtungs-Alternativen
-        while ((toks[p + 1] || '').toLowerCase() === 'oder' && directionOf(toks[p + 2] || '')) {
+        while (ALT[lc(toks[p + 1])] && directionOf(toks[p + 2] || '')) {
           directions.push(directionOf(toks[p + 2])); p += 2;
         }
         continue;
@@ -260,7 +280,7 @@
 
     // abschließendes „frei“ („VHT aus Mitte frei“) = offener Schlag ohne festes Ziel
     var openEnd = false;
-    if (coreTokens.length > 1 && (coreTokens[coreTokens.length - 1] || '').toLowerCase() === 'frei') {
+    if (coreTokens.length > 1 && /^(frei|free)$/i.test(coreTokens[coreTokens.length - 1] || '')) {
       coreTokens.pop(); openEnd = true;
     }
 
@@ -275,7 +295,7 @@
 
     // 2) Technik
     var technik = coreTokens[0];
-    if (/^(aus|in|auf|über|oder|bis|mal)$/i.test(technik)) {
+    if (RESERVED[lc(technik)]) {
       return fail('noTech');
     }
     if (!TECHNIK.test(technik)) {
@@ -284,10 +304,10 @@
     var i = 1;
 
     // 2b) Technik-Alternativen mit „oder“ (VHT oder RHT) -> wie „VHT/RHT“
-    while ((coreTokens[i] || '').toLowerCase() === 'oder'
+    while (ALT[lc(coreTokens[i])]
       && coreTokens[i + 1]
       && TECHNIK.test(coreTokens[i + 1])
-      && !/^(aus|in|auf|bis|mal|oder)$/i.test(coreTokens[i + 1])
+      && !RESERVED[lc(coreTokens[i + 1])]
       && !readPosition(coreTokens, i + 1)) {
       technik += '/' + coreTokens[i + 1];
       i += 2;
@@ -298,11 +318,11 @@
     function skipNoise() {
       while (i < coreTokens.length) {
         var w = (coreTokens[i] || '').toLowerCase();
-        if (w === 'aus' || w === 'bis' || w === 'oder') return;
-        if (/^(in|auf|über)$/.test(w)) {
+        if (PREP[w]) {
           if (SPIN[(coreTokens[i + 1] || '').toLowerCase()]) { i += 2; continue; } // „auf Unterschnitt“
           return;                                                                   // echte Präposition
         }
+        if (FROM[w] || RANGE[w] || ALT[w]) return;
         i++;
       }
     }
@@ -310,7 +330,7 @@
 
     // 3) optional: aus [TIEFE] POSITION [oder [TIEFE] POSITION]…
     var from = null, fromAlts = [];
-    if ((coreTokens[i] || '').toLowerCase() === 'aus') {
+    if (FROM[lc(coreTokens[i])]) {
       i++;
       var fromDepth = 'lang';
       var d1 = depthOf(coreTokens[i] || '');
@@ -321,7 +341,7 @@
       // Halb-/Ganzfeld als Ursprung -> repräsentativer Punkt
       from = { pos: HALF_POINT[fp.pos] || fp.pos, depth: fromDepth };
       // weitere Ursprünge mit „oder“ (aus Mitte oder RH)
-      while ((coreTokens[i] || '').toLowerCase() === 'oder') {
+      while (ALT[lc(coreTokens[i])]) {
         var j = i + 1, da = depthOf(coreTokens[j] || '');
         if (da) j++;
         var fa = readPosition(coreTokens, j);
@@ -336,14 +356,14 @@
     // 4) optional: in|auf|über [TIEFE] ZIEL
     var target = null;
     var defDepth = strokeDepth || 'lang';
-    if (/^(in|auf|über)$/i.test(coreTokens[i] || '')) {
+    if (PREP[lc(coreTokens[i])]) {
       i++;
       var first = readTargetItem(coreTokens, i, defDepth);
       if (first.error) return fail(first.code, first.arg);
       i = first.next;
       var firstPos = first.items[0].pos;
 
-      if ((coreTokens[i] || '').toLowerCase() === 'bis') {
+      if (RANGE[lc(coreTokens[i])]) {
         i++;
         var second = readTargetItem(coreTokens, i, defDepth);
         if (second.error) return fail(second.code, second.arg);
@@ -356,7 +376,7 @@
         target = { kind: 'range', range: HALF_RANGE[firstPos], list: [] };
       } else {
         var list = first.items.slice();   // Slash-Positionen (VH/Mitte/RH) sind schon mehrere
-        while ((coreTokens[i] || '').toLowerCase() === 'oder') {
+        while (ALT[lc(coreTokens[i])]) {
           i++;
           var more = readTargetItem(coreTokens, i, defDepth);
           if (more.error) return fail(more.code, more.arg);
@@ -414,7 +434,9 @@
   function labelFor(stroke) {
     var parts = [];
     if (stroke.repeat) parts.push(stroke.repeat + '×');
-    if (stroke.strokeDepth && stroke.strokeDepth !== 'lang') parts.push(stroke.strokeDepth);
+    if (stroke.strokeDepth && stroke.strokeDepth !== 'lang') {
+      parts.push((TTV.i18n && TTV.i18n.depthWord) ? TTV.i18n.depthWord(stroke.strokeDepth) : stroke.strokeDepth);
+    }
     parts.push(stroke.technik);
     var dirs = (stroke.directions && stroke.directions.length) ? stroke.directions : (stroke.direction ? [stroke.direction] : []);
     if (dirs.length) parts.push(dirs.map(function (d) { return d === 'diagonal' ? 'diag' : 'parallel'; }).join('/'));
