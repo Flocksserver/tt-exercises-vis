@@ -14,8 +14,9 @@
  *   TECHNIK    = ein Wort, auch „/“-Varianten und „-“ (VHT, RHK/RHT, US-Aufschlag) ;
  *   RICHTUNG   = diagonal | parallel ;
  *   TIEFE      = kurz | halblang | lang ;
- *   POSITION   = VH | RH | Mitte | Mitte[ der ]VH/RH | Ellbogen
+ *   POSITION   = VH | RH | Mitte | Mitte[ der ]VH/RH
  *              | ganzer Tisch | halber Tisch VH/RH | …-Bereich/-Feld/-Hälfte/-Ecke ;
+ *              ( Ellbogen/Ellenbogen/Wechselpunkt = Synonym für Mitte )
  *   REGELMASS  = regelmäßig | unregelmäßig | wechselnd ;
  *
  * Semantik (resolver.js): fehlt „aus", kommt der Ursprung aus dem Ballverlauf (bzw. der
@@ -29,7 +30,7 @@
  *               target:{ kind:'positions'|'range'|'whole', list:[{pos,depth}], range }|null }
  *   'alternatives': { variants:[stroke,…] }   // ganze Schläge mit „oder"
  *
- * pos  ∈ VH | RH | Mitte | MitteVH | MitteRH | Ellbogen | whole | halfVH | halfRH
+ * pos  ∈ VH | RH | Mitte | MitteVH | MitteRH | whole | halfVH | halfRH
  * depth∈ kurz | halblang | lang
  */
 (function (TTV) {
@@ -55,8 +56,8 @@
     },
     article: ['den', 'die', 'das', 'der', 'dem', 'eine', 'einen', 'einer'],
     position: {              // Ein-Wort-Synonyme -> kanonische Position
-      Mitte: ['mitte', 'mi'],
-      Ellbogen: ['ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt']
+      // Ellbogen/Ellenbogen/Wechselpunkt/Bauch = Synonyme für Mitte
+      Mitte: ['mitte', 'mi', 'ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt']
     },
     // Schnitt-/Rotations-Annotationen („mit US“, „auf Unterschnitt“) -> ignoriert
     spin: ['us', 'üs', 'uüs', 'unterschnitt', 'überschnitt', 'seitschnitt', 'schnitt', 'rotation', 'spin']
@@ -102,9 +103,6 @@
       var inner = readPosition(tokens, i + 1);
       return inner ? { pos: inner.pos, n: inner.n + 1 } : null;
     }
-
-    // Ein-Wort-Synonyme (Ellbogen/Wechselpunkt/EB/Bauch …); Mitte hat eigene Logik unten
-    if (POS_OF[low0] === 'Ellbogen') return { pos: 'Ellbogen', n: 1 };
 
     // ganzer Tisch / ganze Tischhälfte
     if (/^ganze[rn]?$/.test(low0)) {
