@@ -32,16 +32,18 @@
 
   var KURZ = /^(kurz|kurze|kurzer|kurzes|kurzen|kurzem)$/i;
   var LANG = /^(lang|lange|langer|langes|langen|langem)$/i;
+  var TIEF = /^(tief|tiefe|tiefer|tiefes|tiefen|tiefem)$/i;   // „tiefe VH“ = lang
   var HALBLANG = /^halblang(e|er|es|en|em)?$/i;
   var DIAGONAL = /^diagonal(e|er)?$/i;
   var PARALLEL = /^parallel(e|er)?$/i;
   var MAL = /^mal$/i;
-  var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/]*[A-Za-zÄÖÜäöüß0-9])?$/;
+  // Technik: ein Wort, auch mit „/“ (Varianten) und „-“ (US-Aufschlag, VH-Flip, RH-Banane)
+  var TECHNIK = /^[A-Za-zÄÖÜäöüß0-9]([A-Za-zÄÖÜäöüß0-9/\-]*[A-Za-zÄÖÜäöüß0-9])?$/;
 
   function depthOf(token) {
     if (KURZ.test(token)) return 'kurz';
     if (HALBLANG.test(token)) return 'halblang';
-    if (LANG.test(token)) return 'lang';
+    if (LANG.test(token) || TIEF.test(token)) return 'lang';
     return null;
   }
 
@@ -60,6 +62,15 @@
   function readPosition(tokens, i) {
     var t0 = (tokens[i] || '');
     var low0 = t0.toLowerCase();
+
+    // Artikel überspringen („auf den Wechselpunkt“, „in die Ecke“)
+    if (/^(den|die|das|der|dem|eine|einen|einer)$/.test(low0)) {
+      var inner = readPosition(tokens, i + 1);
+      return inner ? { pos: inner.pos, n: inner.n + 1 } : null;
+    }
+
+    // Wechselpunkt / Ellbogen / Bauch (Übergangspunkt) – inkl. Abkürzung EB
+    if (/^(wechselpunkt|ellbogen|ellenbogen|eb|bauch)$/.test(low0)) return { pos: 'Ellbogen', n: 1 };
 
     // ganzer Tisch / ganze Tischhälfte
     if (/^ganze[rn]?$/.test(low0)) {
@@ -80,8 +91,8 @@
       return null;
     }
 
-    // Mitte VH / Mitte RH (mit oder ohne „der“); sonst Mitte
-    if (low0 === 'mitte') {
+    // Mitte VH / Mitte RH (mit oder ohne „der“); sonst Mitte. „Mi“ = Kurzform.
+    if (low0 === 'mitte' || low0 === 'mi') {
       var m1 = (tokens[i + 1] || '').toLowerCase();
       if (m1 === 'der') {
         var side = (tokens[i + 2] || '').toLowerCase();
@@ -100,12 +111,12 @@
     if (/^vh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfVH', n: 1 };
     if (/^rh[-–]h(ä|ae)lfte$/i.test(t0)) return { pos: 'halfRH', n: 1 };
 
-    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „RH Hälfte“)
-    var base = t0.replace(/[-–](bereich|feld|bauch|seite)$/i, '');
+    // einzelnes VH/RH, ggf. mit Suffix-Wort („RH Bereich“, „VH Feld“, „RH Hälfte“, „VH Ecke“)
+    var base = t0.replace(/[-–](bereich|feld|bauch|seite|ecke)$/i, '');
     var lowb = base.toLowerCase();
     var nextLow = (tokens[i + 1] || '').toLowerCase();
     var halfSuffix = /^h(ä|ae)lfte$/.test(nextLow);
-    var areaSuffix = /^(bereich|feld|seite)$/.test(nextLow);
+    var areaSuffix = /^(bereich|feld|seite|ecke)$/.test(nextLow);
     var consume = (halfSuffix || areaSuffix) ? 1 : 0;
     if (lowb === 'vh') return { pos: halfSuffix ? 'halfVH' : 'VH', n: 1 + consume };
     if (lowb === 'rh') return { pos: halfSuffix ? 'halfRH' : 'RH', n: 1 + consume };
@@ -147,8 +158,17 @@
     return segs.filter(function (s) { return s.trim() !== ''; });
   }
 
+  // Kleinkram glätten: Aufzählungs-Präfix, „o.“ = oder, abschließende Satzzeichen.
+  function normalizeCell(text) {
+    text = text.replace(/\s+/g, ' ').trim();
+    text = text.replace(/^([a-zA-Z]\)|\d+[.)])\s+/, '');   // „a) “, „1. “, „2) “
+    text = text.replace(/(^|\s)o\.(?=\s|$)/gi, '$1oder');  // „o.“ -> „oder“
+    text = text.replace(/([A-Za-zÄÖÜäöüß])[.,;]+(?=\s|$)/g, '$1'); // „Mi.“ „EB.“ -> ohne Punkt
+    return text.trim();
+  }
+
   function parseCell(rawText) {
-    var text = (rawText == null ? '' : String(rawText)).trim().replace(/\s+/g, ' ');
+    var text = normalizeCell(rawText == null ? '' : String(rawText));
     if (text === '') return { type: 'empty' };
     if (/^frei$/i.test(text)) return { type: 'frei' };
     if (/^endlos$/i.test(text)) return { type: 'endlos' };
@@ -173,6 +193,8 @@
     text = text.replace(/\((\d+(?:-\d+)?)\s*x\)/i, function (_, n) { repeat = n; return ' '; });
     text = text.replace(/\b(\d+(?:-\d+)?)\s*mal\b/i, function (_, n) { repeat = repeat || n; return ' '; });
     text = text.replace(/\b(\d+(?:-\d+)?)\s*x\b/i, function (_, n) { repeat = repeat || n; return ' '; });
+    // führende Zahl ohne „mal“ (z. B. „1-2 VHB“, „0-1 RHT“, „2+ VHT“)
+    text = text.replace(/^\s*(\d+(?:-\d+)?\+?)\s+(?=\S)/, function (_, n) { repeat = repeat || n; return ''; });
 
     var coreTokens = [];
     text.trim().split(/\s+/).forEach(function (tok) {
@@ -233,34 +255,35 @@
       }
     }
 
-    // 4) optional: in|auf [TIEFE] ZIEL
+    // 4) optional: in|auf|über [TIEFE] ZIEL
     var target = null;
     var defDepth = strokeDepth || 'lang';
-    if (/^(in|auf)$/i.test(coreTokens[i] || '')) {
+    if (/^(in|auf|über)$/i.test(coreTokens[i] || '')) {
       i++;
       var first = readTargetItem(coreTokens, i, defDepth);
       if (first.error) return fail(first.error);
       i = first.next;
+      var firstPos = first.items[0].pos;
 
       if ((coreTokens[i] || '').toLowerCase() === 'bis') {
         i++;
         var second = readTargetItem(coreTokens, i, defDepth);
         if (second.error) return fail(second.error);
         i = second.next;
-        target = { kind: 'range', range: { from: first.item.pos, to: second.item.pos }, list: [] };
-      } else if (first.item.pos === 'whole') {
+        target = { kind: 'range', range: { from: firstPos, to: second.items[0].pos }, list: [] };
+      } else if (firstPos === 'whole') {
         target = { kind: 'whole', list: [], range: null };
-      } else if (HALF_RANGE[first.item.pos]) {
+      } else if (HALF_RANGE[firstPos]) {
         // halber Tisch RH/VH -> Bereichs-Zone
-        target = { kind: 'range', range: HALF_RANGE[first.item.pos], list: [] };
+        target = { kind: 'range', range: HALF_RANGE[firstPos], list: [] };
       } else {
-        var list = [first.item];
+        var list = first.items.slice();   // Slash-Positionen (VH/Mitte/RH) sind schon mehrere
         while ((coreTokens[i] || '').toLowerCase() === 'oder') {
           i++;
           var more = readTargetItem(coreTokens, i, defDepth);
           if (more.error) return fail(more.error);
           i = more.next;
-          list.push(more.item);
+          more.items.forEach(function (it) { list.push(it); });
         }
         target = { kind: 'positions', list: list, range: null };
       }
@@ -289,9 +312,17 @@
     var depth = defaultDepth || 'lang';
     var d = depthOf(tokens[i] || '');
     if (d) { depth = d; i++; }
+    // Slash-Positionen als ein Token: „VH/Mitte/RH“ -> mehrere Ziele
+    var tok = tokens[i] || '';
+    if (tok.indexOf('/') !== -1) {
+      var parts = tok.split('/').map(function (pp) { return readPosition([pp], 0); });
+      if (parts.every(Boolean)) {
+        return { items: parts.map(function (pp) { return { pos: pp.pos, depth: depth }; }), next: i + 1 };
+      }
+    }
     var p = readPosition(tokens, i);
     if (!p) return { error: 'Ungültiges Ziel „' + (tokens[i] || '') + '“. Erlaubt: VH, RH, Mitte, Ellbogen, ganzer Tisch …' };
-    return { item: { pos: p.pos, depth: depth }, next: i + p.n };
+    return { items: [{ pos: p.pos, depth: depth }], next: i + p.n };
   }
 
   function validateCell(rawText) {
