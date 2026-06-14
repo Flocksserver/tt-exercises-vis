@@ -85,13 +85,30 @@ test('Technik-Alternativen mit „oder“ (VHT oder RHT)', () => {
   assert.equal(P('VHT in VH oder RH').target.list.length, 2);
 });
 
-test('Zonen-Suffixe: -Bereich/-Feld/-Hälfte, auch mit Leerzeichen', () => {
+test('Zonen-Suffixe: -Bereich/-Feld als Punkt, auch mit Leerzeichen', () => {
   assert.equal(P('RHK in RH-Bereich').target.list[0].pos, 'RH');
   assert.equal(P('RHK in RH Bereich').target.list[0].pos, 'RH');
   assert.equal(P('VHT in VH-Feld').target.list[0].pos, 'VH');
   assert.equal(P('VHT aus VH-Feld in RH').from.pos, 'VH');
-  assert.equal(P('RHB in RH-Hälfte').target.list[0].pos, 'RH');
-  assert.equal(P('RHB in RH Hälfte').target.list[0].pos, 'RH');
+});
+
+test('Halbfeld: halber Tisch / -Hälfte -> Bereichs-Zone', () => {
+  assert.deepEqual(P('Block in halber Tisch RH').target.range, { from: 'Mitte', to: 'RH' });
+  assert.deepEqual(P('Block in halber Tisch VH').target.range, { from: 'Mitte', to: 'VH' });
+  assert.deepEqual(P('Block in halbe RH').target.range, { from: 'Mitte', to: 'RH' });
+  assert.equal(P('RHB in RH-Hälfte').target.kind, 'range');
+  assert.deepEqual(P('RHB in RH-Hälfte').target.range, { from: 'Mitte', to: 'RH' });
+  assert.equal(P('RHB in RH Hälfte').target.kind, 'range');
+  assert.deepEqual(P('VHB in VH-Hälfte').target.range, { from: 'Mitte', to: 'VH' });
+});
+
+test('Mitte VH/RH (mit und ohne „der“), Mitte bleibt Mitte', () => {
+  assert.equal(P('VHT in Mitte VH').target.list[0].pos, 'MitteVH');
+  assert.equal(P('VHT in Mitte RH').target.list[0].pos, 'MitteRH');
+  assert.equal(P('VHT in Mitte der VH').target.list[0].pos, 'MitteVH');
+  assert.equal(P('VHT in Mitte').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT in Mitte oder RH').target.list.length, 2);
+  assert.equal(P('VHT aus Mitte VH in RH').from.pos, 'MitteVH');
 });
 
 test('Bereich (bis)', () => {

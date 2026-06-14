@@ -63,10 +63,11 @@ test('frei und endlos erzeugen Marker-Text', () => {
   assert.ok(txt.some(t => /endlos/.test(t)));
 });
 
-test('Zonen (ganzer Tisch, bis, unregelmäßig) erzeugen Polygone', () => {
+test('Zonen (ganzer Tisch, halber Tisch, bis, unregelmäßig) erzeugen Polygone', () => {
   assert.equal(H.byTag(render([['VHT in ganzer Tisch', 'frei']]), 'polygon').length, 1);
   assert.equal(H.byTag(render([['VHT aus VH in VH bis Mitte', 'frei']]), 'polygon').length, 1);
   assert.equal(H.byTag(render([['Block unregelmäßig', 'frei']]), 'polygon').length, 1);
+  assert.equal(H.byTag(render([['VHT diagonal', 'Block in halber Tisch RH']]), 'polygon').length, 1);
 });
 
 test('Technik-Label: A unterhalb, B oberhalb des Tischs', () => {
