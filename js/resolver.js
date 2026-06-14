@@ -31,6 +31,47 @@
     return parallel[pos] || pos;                    // parallel (längs)
   }
 
+  // Ursprünge eines Schlags: explizit „aus …" (+ oder-Alternativen) > Ballort > Schlaghand.
+  function buildFroms(parsed, incoming) {
+    if (parsed.from) {
+      return [{ pos: parsed.from.pos, depth: parsed.from.depth }].concat(
+        (parsed.fromAlts || []).map(function (f) { return { pos: f.pos, depth: f.depth }; }));
+    }
+    if (incoming) return [{ pos: incoming.pos, depth: incoming.depth }];
+    var hand = handOf(parsed.technik);
+    if (hand) return [{ pos: hand, depth: 'lang' }];
+    return [{ pos: 'Mitte', depth: 'lang' }];
+  }
+
+  // Einen Einzelschlag in einen „shot" (Ursprünge + Pfeile/Zone) übersetzen.
+  function buildShot(parsed, incoming, forceDashed) {
+    var froms = buildFroms(parsed, incoming);
+    var arrows = [], zone = null, variable = false;
+    var tgt = parsed.target;
+    if (tgt && tgt.kind === 'range') {
+      zone = { from: { pos: tgt.range.from, depth: 'lang' }, to: { pos: tgt.range.to, depth: 'lang' } };
+    } else if (tgt && tgt.kind === 'whole') {
+      zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+    } else if (tgt && tgt.kind === 'positions') {
+      arrows = tgt.list.map(function (it, idx) { return { to: { pos: it.pos, depth: it.depth }, dashed: idx > 0 }; });
+    } else if (parsed.direction) {
+      arrows = [{ to: { pos: deriveTarget(froms[0].pos, parsed.direction), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
+    }
+    if (parsed.regular === 'unregelmaessig') {
+      variable = true;
+      if (!zone && arrows.length === 0) zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+    }
+    var multiFrom = froms.length > 1;
+    var dashAll = forceDashed || multiFrom || arrows.length > 1;
+    arrows = arrows.map(function (a) { return { to: a.to, dashed: dashAll || a.dashed }; });
+    var primary = arrows.length ? arrows[0].to : (zone ? { pos: 'Mitte', depth: zone.from.depth || 'lang' } : null);
+    var variableTarget = !!zone || arrows.length > 1 || multiFrom || forceDashed || parsed.regular === 'unregelmaessig';
+    return {
+      shot: { label: TTV.notation.labelFor(parsed), from: froms[0], froms: froms, arrows: arrows, zone: zone, variable: variable, zoneDashed: forceDashed || multiFrom },
+      primary: primary, variableTarget: variableTarget
+    };
+  }
+
   function run(rows) {
     // ball[seite] = null (kein Ball) oder { pos, depth, variable }
     var ball = { A: null, B: null };
@@ -42,63 +83,30 @@
         ball.A = null; ball.B = null;   // Rally-Grenze: Ball unbestimmt
         return { kind: parsed.type, player: player };
       }
-      if (parsed.type !== 'stroke') return null;
+      var variants, isAlt;
+      if (parsed.type === 'stroke') { variants = [parsed]; isAlt = false; }
+      else if (parsed.type === 'alternatives') { variants = parsed.variants; isAlt = true; }
+      else return null;
 
       var opp = player === 'A' ? 'B' : 'A';
       var incoming = ball[player];
-      var hand = handOf(parsed.technik);
-      // Ursprung: explizit „aus …" > Ballort (Kette) > Schlaghand (erster Schlag)
-      var from = parsed.from
-        ? { pos: parsed.from.pos, depth: parsed.from.depth }
-        : incoming
-          ? { pos: incoming.pos, depth: incoming.depth }
-          : hand
-            ? { pos: hand, depth: 'lang' }
-            : { pos: 'Mitte', depth: 'lang' };
+      var shots = [], primary = null, variableAfter = isAlt;
 
-      // Mehrere Ursprünge (aus … oder …) sind bewusst variabel.
-      var froms = parsed.from
-        ? [{ pos: parsed.from.pos, depth: parsed.from.depth }].concat(
-            (parsed.fromAlts || []).map(function (f) { return { pos: f.pos, depth: f.depth }; }))
-        : [from];
-
-      // Logik-Check: explizites „aus" muss zum Ballort passen (außer Ball variabel/unbestimmt
-      // oder Ursprung selbst variabel via „oder").
-      if (parsed.from && !parsed.fromAlts && incoming && !incoming.variable && parsed.from.pos !== incoming.pos) {
-        issues.push({ row: rowIdx, player: player, technik: parsed.technik, expected: incoming.pos, got: parsed.from.pos });
-      }
-
-      var arrows = [], zone = null, variable = false;
-      var tgt = parsed.target;
-      if (tgt && tgt.kind === 'range') {
-        zone = { from: { pos: tgt.range.from, depth: 'lang' }, to: { pos: tgt.range.to, depth: 'lang' } };
-      } else if (tgt && tgt.kind === 'whole') {
-        zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
-      } else if (tgt && tgt.kind === 'positions') {
-        arrows = tgt.list.map(function (it, idx) {
-          return { to: { pos: it.pos, depth: it.depth }, dashed: idx > 0 };
-        });
-      } else if (parsed.direction) {
-        arrows = [{ to: { pos: deriveTarget(from.pos, parsed.direction), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
-      }
-
-      if (parsed.regular === 'unregelmaessig') {
-        variable = true;
-        if (!zone && arrows.length === 0) {
-          zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+      variants.forEach(function (pv, vi) {
+        // Logik-Check nur bei eindeutigem, explizitem Ursprung (keine Alternativen)
+        if (!isAlt && pv.from && !pv.fromAlts && incoming && !incoming.variable && pv.from.pos !== incoming.pos) {
+          issues.push({ row: rowIdx, player: player, technik: pv.technik, expected: incoming.pos, got: pv.from.pos });
         }
-      }
+        var b = buildShot(pv, incoming, isAlt);
+        shots.push(b.shot);
+        if (vi === 0) primary = b.primary;
+        if (b.variableTarget) variableAfter = true;
+      });
 
-      // Ziel nicht eindeutig (oder / Bereich / ganzer Tisch / unregelmäßig)?
-      var variableTarget = !!zone || arrows.length > 1 || parsed.regular === 'unregelmaessig';
-      var primary = arrows.length ? arrows[0].to : (zone ? { pos: 'Mitte', depth: zone.from.depth || 'lang' } : null);
       ball[player] = null;                       // Ball verlässt die eigene Seite
-      if (primary) ball[opp] = { pos: primary.pos, depth: primary.depth, variable: variableTarget };
+      if (primary) ball[opp] = { pos: primary.pos, depth: primary.depth, variable: variableAfter };
 
-      return {
-        kind: 'stroke', player: player, label: TTV.notation.labelFor(parsed),
-        from: froms[0], froms: froms, arrows: arrows, zone: zone, variable: variable
-      };
+      return { kind: 'stroke', player: player, shots: shots };
     }
 
     var resolved = rows.map(function (row, idx) {
