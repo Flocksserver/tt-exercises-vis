@@ -149,9 +149,6 @@
   }
   // Positions-Slot (aus/in): Positionen, Seiten, ganz/halb/Tisch.
   var POS_VOCAB = vocabFrom(LEXICON.position, LEXICON.side, LEXICON.whole, LEXICON.half, LEXICON.tisch, LEXICON.weit);
-  // Keyword-Slot (fehlendes Ziel): Richtung, Tiefe, Präpositionen — KEINE Seiten/Positionen
-  // (sonst würde ein Technik-Fragment wie „RHT“ fälschlich zu „RH“ vorgeschlagen).
-  var KW_VOCAB = vocabFrom(LEXICON.direction, LEXICON.depth, LEXICON.from, LEXICON.prep, LEXICON.range, LEXICON.alt);
   var DISPLAY = { mitte: 'Mitte' };   // dt. Substantiv groß; „middle“/Keywords bleiben klein
   function display(w) {
     if (DISPLAY[w]) return DISPLAY[w];
@@ -172,24 +169,14 @@
     }
     return (best && bestD >= 1 && bestD <= max) ? display(best) : null;
   }
-  // Wird ein Token bereits von irgendeiner Rolle erkannt? (dann kein Vorschlag)
-  function isVocabKnown(tok) {
-    var w = lc(tok);
-    if (!w) return true;
-    if (DEPTH_OF[w] || DIR_OF[w] || POS_OF[w] || SIDE_OF[w]) return true;
-    if (ARTICLE[w] || SPIN[w] || FROM[w] || PREP[w] || RANGE[w] || ALT[w]) return true;
-    if (WHOLE[w] || HALFW[w] || TISCH[w] || DER[w]) return true;
-    if (regularOf(tok)) return true;
-    if (readPosition([tok], 0)) return true;
-    return false;
-  }
-  // Bei fehlendem Ziel: erstes unbekanntes Token (ab Technik+1) gegen Keyword-Vokabular.
-  function bestKeywordSuggestion(tokens, startIndex) {
-    for (var k = startIndex; k < tokens.length; k++) {
-      if (isVocabKnown(tokens[k])) continue;
-      var s = suggest(tokens[k], KW_VOCAB);
-      if (s) return s;
-    }
+
+  // Bruchteil-Erkennung: „2/3“, „3/4“, „¾“, „⅔“ … (echter Bruch < 1) -> { num, den }.
+  var UNI_FRAC = { '¼': [1, 4], '½': [1, 2], '¾': [3, 4], '⅓': [1, 3], '⅔': [2, 3], '⅕': [1, 5], '⅖': [2, 5], '⅗': [3, 5], '⅘': [4, 5] };
+  function parseFraction(tok) {
+    if (!tok) return null;
+    if (UNI_FRAC[tok]) return { num: UNI_FRAC[tok][0], den: UNI_FRAC[tok][1] };
+    var m = String(tok).match(/^(\d+)\/(\d+)$/);
+    if (m) { var n = +m[1], d = +m[2]; if (d > 0 && n > 0 && n < d) return { num: n, den: d }; }
     return null;
   }
 
@@ -233,6 +220,18 @@
       if (wside === 'vh') return { pos: 'VHweit', n: 2 };
       if (wside === 'rh') return { pos: 'RHweit', n: 2 };
       return null;   // „weit“ ohne Seite ist keine Position
+    }
+
+    // Bruchzone: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“ -> Zone über den Bruchteil zur Seite hin
+    var fr = parseFraction(t0);
+    if (fr) {
+      var fj = i + 1;
+      if (TISCH[lc(tokens[fj])]) fj++;                                  // „2/3 Tisch VH“
+      var fside = sideOf(tokens[fj]) || sideOf(String(tokens[fj] || '').replace(/[-–]tisch$/i, ''));
+      if (!fside) return null;                                          // Bruch ohne Seite -> keine Position
+      fj++;
+      if (TISCH[lc(tokens[fj])]) fj++;                                  // „2/3 VH Tisch“
+      return { pos: 'frac:' + fside + ':' + fr.num + ':' + fr.den, n: fj - i };
     }
 
     // halber Tisch RH/VH | halbe RH/VH | half table FH | half FH  -> Halbfeld-Zone
@@ -471,6 +470,9 @@
       } else if (HALF_RANGE[firstPos]) {
         // halber Tisch RH/VH -> Bereichs-Zone
         target = { kind: 'range', range: HALF_RANGE[firstPos], list: [] };
+      } else if (firstPos.indexOf('frac:') === 0) {
+        // Bruchzone „2/3 VH“ -> Anteil-Band zur Seite hin (resolver rechnet die Lage)
+        target = { kind: 'fraczone', spec: firstPos, list: [], range: null };
       } else {
         var list = first.items.slice();   // Slash-Positionen (VH/Mitte/RH) sind schon mehrere
         while (ALT[lc(coreTokens[i])]) {
@@ -484,10 +486,8 @@
       }
     }
 
-    // 5) Plausibilität: ohne Ziel brauchen wir Richtung, „unregelmäßig“ oder „frei“ (offen)
-    if (!target && !direction && regular !== 'unregelmaessig' && !openEnd) {
-      return fail('noTarget', null, bestKeywordSuggestion(coreTokens, 1));
-    }
+    // 5) Ohne Ziel UND ohne Richtung gilt der Schlag als diagonal aus der Schlaghand
+    //    (bzw. dem Ballverlauf) – das leitet der resolver ab. Kein Fehler mehr.
 
     // übrige Tokens werden tolerant ignoriert (Freitext-Zusätze in echten Mappen)
     return {
@@ -500,7 +500,8 @@
       strokeDepth: strokeDepth,
       from: from,
       fromAlts: fromAlts.length ? fromAlts : null,
-      target: target
+      target: target,
+      openEnd: openEnd
     };
   }
 

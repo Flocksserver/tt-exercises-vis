@@ -25,6 +25,31 @@ test('deriveTarget: diagonal hält Seite, parallel spiegelt', () => {
   assert.equal(d('RHweit', 'parallel'), 'VHweit');
 });
 
+test('Default diagonal: bloße Technik -> diagonal aus Schlaghand', () => {
+  // Spieler A: „VHT“ -> aus VH, diagonal -> Ziel VH (kreuzt optisch)
+  const res = seq([['VHT', '']]);
+  const sh = s0(res[0].a);
+  assert.deepEqual(sh.from, { pos: 'VH', depth: 'lang' });
+  assert.equal(sh.arrows.length, 1);
+  assert.equal(sh.arrows[0].to.pos, 'VH');
+  // RHB -> aus RH diagonal -> RH
+  assert.equal(s0(seq([['RHB', '']])[0].a).arrows[0].to.pos, 'RH');
+  // „frei“ am Ende: kein Default-Pfeil
+  assert.equal(s0(seq([['VHT aus Mitte frei', '']])[0].a).arrows.length, 0);
+});
+
+test('Bruchzone wird zu Anteil-Band (lx)', () => {
+  // 2/3 VH: lx von 1/3 bis 1 (Sicht A)
+  const z = s0(seq([['Block in 2/3 VH', '']])[0].a).zone;
+  assert.ok(z, 'Zone vorhanden');
+  assert.ok(Math.abs(z.from.lx - (1 / 3)) < 1e-9 || Math.abs(z.to.lx - (1 / 3)) < 1e-9, 'eine Kante bei 1/3');
+  assert.ok(z.from.lx === 1 || z.to.lx === 1, 'eine Kante an der VH-Außenlinie');
+  // 1/2 RH: lx 0..0.5
+  const z2 = s0(seq([['Block in 1/2 RH', '']])[0].a).zone;
+  assert.equal(z2.from.lx, 0);
+  assert.ok(Math.abs(z2.to.lx - 0.5) < 1e-9);
+});
+
 test('erster Schlag ohne aus: Ursprung aus Schlaghand', () => {
   const res = seq([['RHK/RHT in RH', 'RHB in RH']]);
   assert.deepEqual(s0(res[0].a).from, { pos: 'RH', depth: 'lang' });   // RH-Technik -> RH

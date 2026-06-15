@@ -46,6 +46,8 @@ ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 
 - **TECHNIK** — ein Wort (z. B. `VHT`, `RHB`, `Schupf`, `Block`, `Aufschlag`); Varianten mit `/`.
 - **`aus …` ist optional** — weglassen (`VHT in RH`), der Ursprung kommt aus dem Ballverlauf.
+- **Ziel & Richtung sind ebenfalls optional** — ein bloßes `VHT` gilt als **diagonal aus der Schlaghand** (also `VHT` ≡ `VHT aus VH diagonal`); der Ursprung folgt weiter dem Ballverlauf, wenn bekannt.
+- **Bruchzonen** — `Block in 2/3 VH`, `¾ VH-Tisch`: schattiertes Band über den Bruchteil zur Seite hin.
 - **`Frei`** beendet die Rally, **`endlos`** = Dauerübung.
 - Viele Kurzformen und Synonyme werden ebenfalls erkannt.
 

@@ -46,6 +46,8 @@ TARGET    = POSITION [or [depth] POSITION] …   |   POSITION through POSITION
 
 - **TECHNIQUE** — one word (e.g. `FHT`, `BHB`, `push`, `block`, `serve`); variants with `/`.
 - **`from …` is optional** — leave it out (`FHT to BH`) and the origin comes from the ball path.
+- **Target & direction are optional too** — a bare `FHT` defaults to **diagonal from the playing hand** (so `FHT` ≡ `FHT from FH diagonal`); the origin still follows the ball path when it's known.
+- **Fraction zones** — `block to 2/3 FH`, `¾ FH table`: a shaded band covering that fraction of the table toward the side.
 - **`free`** ends the rally, **`endless`** marks a continuous drill.
 - **Bilingual notation.** The parser accepts English **and** German keywords interchangeably —
   `FH/BH` or `VH/RH`, `from/aus`, `to/in`, `or/oder`, `through/bis`, `times/mal`, `whole table /

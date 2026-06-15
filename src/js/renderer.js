@@ -129,14 +129,19 @@
     };
   }
 
+  // Zonen-Eckpunkt: rohe seitliche Lage (lx, z. B. Bruchzone) oder benannte Position.
+  function zonePt(t, side, e) {
+    return (e.lx != null) ? geo.pointLx(t, side, e.lx, e.depth) : geo.point(t, side, e.pos, e.depth);
+  }
+
   function drawZoneAndLabel(svg, t, S) {
     if (S.variable && !S.zone) {
       var v1 = geo.point(t, S.opp, 'VH', 'lang'), v2 = geo.point(t, S.opp, 'RH', 'lang');
       drawZone(svg, S.fromPt, v1, v2, S.colorKey, true);
     }
     if (S.zone) {
-      var z1 = geo.point(t, S.opp, S.zone.from.pos, S.zone.from.depth);
-      var z2 = geo.point(t, S.opp, S.zone.to.pos, S.zone.to.depth);
+      var z1 = zonePt(t, S.opp, S.zone.from);
+      var z2 = zonePt(t, S.opp, S.zone.to);
       var mid = { x: (z1.x + z2.x) / 2, y: (z1.y + z2.y) / 2 };
       S.fromPts.forEach(function (fp) {     // je Ursprung eine Zone/ein Pfeil zur Mitte
         drawZone(svg, fp, z1, z2, S.colorKey, S.variable);

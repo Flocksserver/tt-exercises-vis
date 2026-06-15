@@ -61,7 +61,9 @@ test('Tiefen kurz/halblang/lang', () => {
 test('Richtung diagonal/parallel, längs entfällt', () => {
   assert.equal(P('VHT aus VH diagonal').direction, 'diagonal');
   assert.equal(P('VHT aus RH parallel').direction, 'parallel');
-  assert.equal(P('VHT aus RH längs').type, 'error');   // längs nicht mehr erlaubt
+  // „längs“ ist keine erkannte Richtung -> wird ignoriert; der Schlag fällt auf Default-Diagonal zurück
+  assert.equal(P('VHT aus RH längs').direction, null);
+  assert.equal(P('VHT aus RH längs').type, 'stroke');
 });
 
 test('Richtungs-Alternativen (diagonal oder parallel)', () => {
@@ -191,7 +193,31 @@ test('Fehlerfälle', () => {
   assert.equal(P('VHT aus Foo in Mitte').type, 'error');
   assert.equal(P('VHT aus VH in Quatsch').type, 'error');
   assert.equal(P('aus VH in RH').type, 'error');        // Technik = Schlüsselwort
-  assert.equal(P('VHT aus VH').type, 'error');           // kein Ziel/Richtung
+  assert.equal(P('VHT aus VH').type, 'stroke');          // ohne Ziel/Richtung -> Default diagonal (kein Fehler)
+});
+
+test('Default: ohne Ziel & Richtung -> diagonal aus Schlaghand', () => {
+  // bloße Technik ist gültig (kein noTarget-Fehler mehr)
+  const r = P('VHT');
+  assert.equal(r.type, 'stroke');
+  assert.equal(r.target, null);
+  assert.equal(r.direction, null);
+  assert.equal(r.openEnd, false);
+  // Technik + Ursprung ohne Ziel ebenfalls gültig
+  assert.equal(P('RHT aus RH').type, 'stroke');
+  // „frei“ am Ende bleibt offen (kein Default-Pfeil) -> openEnd
+  assert.equal(P('VHT aus Mitte frei').openEnd, true);
+});
+
+test('Bruchzonen: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“', () => {
+  assert.equal(P('Block in 2/3 VH').target.kind, 'fraczone');
+  assert.equal(P('Block in 2/3 VH').target.spec, 'frac:vh:2:3');
+  assert.equal(P('VHT in ¾ RH').target.spec, 'frac:rh:3:4');
+  assert.equal(P('Block in 2/3 VH-Tisch').target.kind, 'fraczone');
+  assert.equal(P('Block in 3/4 VH Tisch').target.spec, 'frac:vh:3:4');
+  // unechter Bruch / ohne Seite -> keine Bruchzone
+  assert.equal(P('Block in 3/2 VH').type, 'error');     // 3/2 ist kein echter Bruch < 1
+  assert.equal(P('Block in 2/3').type, 'error');        // ohne Seite
 });
 
 test('Kurzformen & Synonyme (CampMappe)', () => {
@@ -281,18 +307,14 @@ test('Fuzzy „Meinten Sie …?“ — Vorschlag bei Tippfehler (kein Auto-Corre
   assert.equal(b.suggestion, 'Mitte');
   // Seiten-Tippfehler -> VH/RH (Display groß)
   assert.equal(P('VHT in RHH').suggestion, 'RH');
-  // Richtungs-Tippfehler landet als fehlendes Ziel -> Keyword-Vorschlag
-  const c = P('VHT aus VH diagonl');
-  assert.equal(c.code, 'noTarget');
-  assert.equal(c.suggestion, 'diagonal');
   // EN: middl -> middle (klein), kein Auto-Correct
   assert.equal(P('FHT to middl').suggestion, 'middle');
   // KEIN Vorschlag bei gültiger Eingabe; Technik wird nie „korrigiert“
   assert.equal(P('VHT aus VH in Mitte').type, 'stroke');
   assert.equal(P('FHT from FH to BH').type, 'stroke');
   assert.equal(P('Block in RH').type, 'stroke');
-  // Technik-Fragment „RHT“ (in „VHT oder RHT“ ohne Ziel) wird NICHT zu „RH“ vorgeschlagen
-  assert.equal(P('VHT oder RHT').suggestion, null);
+  // „VHT oder RHT“ ohne Ziel ist gültig (Default diagonal), kein Fehler/Vorschlag
+  assert.equal(P('VHT oder RHT').type, 'stroke');
   // validateCell reicht den Vorschlag durch
   assert.equal(TTV.notation.validateCell('VHT in Mittte').suggestion, 'Mitte');
 });

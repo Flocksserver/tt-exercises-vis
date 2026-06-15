@@ -39,6 +39,18 @@ test('seitliche Reihenfolge VHweit > VH > MitteVH > Mitte > MitteRH > RH > RHwei
   assert.ok(x('RH') > x('RHweit'), 'weite RH noch weiter außen');
 });
 
+test('pointLx: rohe seitliche Lage zwischen benannten Positionen', () => {
+  const t = G.table(0);
+  const xMitte = G.point(t, 'A', 'Mitte', 'lang').x;
+  const xVH = G.point(t, 'A', 'VH', 'lang').x;
+  const x075 = G.pointLx(t, 'A', 0.75, 'lang').x;
+  assert.ok(x075 > xMitte && x075 < xVH, 'lx 0.75 liegt zwischen Mitte und VH');
+  // lx 0.5 == Mitte
+  assert.ok(Math.abs(G.pointLx(t, 'A', 0.5, 'lang').x - xMitte) < 0.001);
+  // B gespiegelt
+  assert.ok(Math.abs((G.pointLx(t, 'A', 0.2, 'lang').x - t.midX) + (G.pointLx(t, 'B', 0.2, 'lang').x - t.midX)) < 0.001);
+});
+
 test('Spieler B ist spiegelverkehrt zu A', () => {
   const t = G.table(0);
   const a = G.point(t, 'A', 'VH', 'lang');

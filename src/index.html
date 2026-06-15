@@ -55,14 +55,17 @@
 
       <div class="toolbar">
         <button type="button" id="addRow" class="btn" data-i18n="addRow">+ Zeile</button>
-        <button type="button" id="btnReset" class="btn" data-i18n="reset">Zurücksetzen</button>
         <label class="toggle"><input type="checkbox" id="multiball" /> <span data-i18n="balleimer">Balleimer (Zuspiel)</span></label>
+      </div>
+
+      <div id="svgContainer" class="svg-container" aria-live="polite"></div>
+
+      <div class="toolbar toolbar-bottom">
+        <button type="button" id="btnReset" class="btn" data-i18n="reset">Zurücksetzen</button>
         <span class="spacer"></span>
         <button type="button" id="btnPng" class="btn btn-primary" data-i18n="exportPng">PNG exportieren</button>
         <button type="button" id="btnSvg" class="btn" data-i18n="exportSvg">SVG exportieren</button>
       </div>
-
-      <div id="svgContainer" class="svg-container" aria-live="polite"></div>
     </section>
 
     <!-- Notation / Legende -->

@@ -52,6 +52,12 @@
       zone = { from: { pos: tgt.range.from, depth: 'lang' }, to: { pos: tgt.range.to, depth: 'lang' } };
     } else if (tgt && tgt.kind === 'whole') {
       zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+    } else if (tgt && tgt.kind === 'fraczone') {
+      // Bruchteil-Band: „2/3 VH“ = äußere 2/3 zur VH-Seite. lx (Sicht A): 1 = VH, 0 = RH.
+      var fp = tgt.spec.split(':'), fside = fp[1], frac = (+fp[2]) / (+fp[3]);
+      var lo = fside === 'vh' ? (1 - frac) : 0;
+      var hi = fside === 'vh' ? 1 : frac;
+      zone = { from: { lx: lo, depth: 'lang' }, to: { lx: hi, depth: 'lang' } };
     } else if (tgt && tgt.kind === 'positions') {
       arrows = tgt.list.map(function (it, idx) { return { to: { pos: it.pos, depth: it.depth }, dashed: idx > 0 }; });
     } else if (parsed.directions && parsed.directions.length) {
@@ -65,6 +71,10 @@
     if (parsed.regular === 'unregelmaessig') {
       variable = true;
       if (!zone && arrows.length === 0) zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+    }
+    // Default: kein Ziel & keine Richtung -> diagonal aus dem Ursprung (Schlaghand/Ballverlauf).
+    if (!arrows.length && !zone && parsed.regular !== 'unregelmaessig' && !parsed.openEnd) {
+      arrows = [{ to: { pos: deriveTarget(froms[0].pos, 'diagonal'), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
     }
     var multiFrom = froms.length > 1;
     var dashAll = forceDashed || multiFrom || arrows.length > 1;
