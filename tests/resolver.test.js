@@ -19,6 +19,10 @@ test('deriveTarget: diagonal hält Seite, parallel spiegelt', () => {
   assert.equal(d('VH', 'parallel'), 'RH');
   assert.equal(d('RH', 'parallel'), 'VH');
   assert.equal(d('Mitte', 'parallel'), 'Mitte');
+  // weite Außen-Positionen spiegeln aufeinander
+  assert.equal(d('VHweit', 'diagonal'), 'VHweit');
+  assert.equal(d('VHweit', 'parallel'), 'RHweit');
+  assert.equal(d('RHweit', 'parallel'), 'VHweit');
 });
 
 test('erster Schlag ohne aus: Ursprung aus Schlaghand', () => {

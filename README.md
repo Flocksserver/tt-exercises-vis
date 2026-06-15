@@ -40,7 +40,7 @@ free | endless
 
 direction = diagonal | parallel
 depth     = short | half-long | long
-POSITION  = FH | BH | middle | middle FH/BH | whole table | half table FH/BH
+POSITION  = FH | BH | wide FH/BH | middle | middle FH/BH | whole table | half table FH/BH
 TARGET    = POSITION [or [depth] POSITION] …   |   POSITION through POSITION
 ```
 

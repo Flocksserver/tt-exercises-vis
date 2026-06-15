@@ -70,8 +70,10 @@
     range: ['bis', 'through', 'thru', 'to'],                    // „… bis …“ / „… to …“
     alt: ['oder', 'or'],
     tisch: ['tisch', 'tischhälfte', 'tischhaelfte', 'table'],   // „ganzer Tisch“ / „whole table“
-    whole: ['ganze', 'ganzer', 'ganzen', 'whole', 'full'],
+    whole: ['ganze', 'ganzer', 'ganzen', 'ganzem', 'whole', 'full'],
     half: ['halbe', 'halber', 'halben', 'half'],
+    // „weit“ = laterale Position: noch weiter außen (zur Seite raus) als VH/RH – KEINE Tiefe!
+    weit: ['weit', 'weite', 'weiter', 'weites', 'weiten', 'weitem', 'wide'],
     der: ['der', 'of']                                          // „Mitte der VH“ / „middle of FH“
   };
 
@@ -89,6 +91,7 @@
   var SPIN = setOf(LEXICON.spin);
   var FROM = setOf(LEXICON.from), PREP = setOf(LEXICON.prep), RANGE = setOf(LEXICON.range), ALT = setOf(LEXICON.alt);
   var WHOLE = setOf(LEXICON.whole), HALFW = setOf(LEXICON.half), TISCH = setOf(LEXICON.tisch), DER = setOf(LEXICON.der);
+  var WEIT = setOf(LEXICON.weit);
   var RESERVED = setOf(LEXICON.from.concat(LEXICON.prep, LEXICON.range, LEXICON.alt, ['mal', 'times', 'x']));
   function lc(s) { return String(s == null ? '' : s).toLowerCase(); }
   function sideOf(tok) { return SIDE_OF[lc(tok)] || null; }   // 'vh' | 'rh' | null
@@ -145,7 +148,7 @@
     return out;
   }
   // Positions-Slot (aus/in): Positionen, Seiten, ganz/halb/Tisch.
-  var POS_VOCAB = vocabFrom(LEXICON.position, LEXICON.side, LEXICON.whole, LEXICON.half, LEXICON.tisch);
+  var POS_VOCAB = vocabFrom(LEXICON.position, LEXICON.side, LEXICON.whole, LEXICON.half, LEXICON.tisch, LEXICON.weit);
   // Keyword-Slot (fehlendes Ziel): Richtung, Tiefe, Präpositionen — KEINE Seiten/Positionen
   // (sonst würde ein Technik-Fragment wie „RHT“ fälschlich zu „RH“ vorgeschlagen).
   var KW_VOCAB = vocabFrom(LEXICON.direction, LEXICON.depth, LEXICON.from, LEXICON.prep, LEXICON.range, LEXICON.alt);
@@ -222,6 +225,14 @@
     // ganzer Tisch / ganze Tischhälfte / whole table / full table
     if (WHOLE[low0]) {
       return TISCH[lc(tokens[i + 1])] ? { pos: 'whole', n: 2 } : { pos: 'whole', n: 1 };
+    }
+
+    // „weit(e/er) VH/RH“ / „wide FH/BH“ = noch weiter außen (laterale Position, keine Tiefe)
+    if (WEIT[low0]) {
+      var wside = sideOf(tokens[i + 1]);
+      if (wside === 'vh') return { pos: 'VHweit', n: 2 };
+      if (wside === 'rh') return { pos: 'RHweit', n: 2 };
+      return null;   // „weit“ ohne Seite ist keine Position
     }
 
     // halber Tisch RH/VH | halbe RH/VH | half table FH | half FH  -> Halbfeld-Zone
@@ -308,6 +319,7 @@
   // Kleinkram glätten: Aufzählungs-Präfix, „o.“ = oder, abschließende Satzzeichen.
   function normalizeCell(text) {
     text = text.replace(/\s+/g, ' ').trim();
+    text = text.replace(/\s*\/\s*/g, '/');                 // „VHT/ RHT“, „RH / VH“ -> „VHT/RHT“ (PDF-Artefakt)
     text = text.replace(/^([a-zA-Z]\)|\d+[.)])\s+/, '');   // „a) “, „1. “, „2) “
     text = text.replace(/(^|\s)o\.(?=\s|$)/gi, '$1oder');  // „o.“ -> „oder“
     text = text.replace(/([A-Za-zÄÖÜäöüß])[.,;]+(?=\s|$)/g, '$1'); // „Mi.“ „EB.“ -> ohne Punkt

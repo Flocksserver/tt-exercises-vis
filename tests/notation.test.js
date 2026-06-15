@@ -243,6 +243,32 @@ test('validateCell', () => {
   assert.equal(TTV.notation.validateCell('VHT aus Foo in RH').valid, false);
 });
 
+test('„weit“ = laterale Position (weiter außen), KEINE Tiefe', () => {
+  // Ziel
+  assert.equal(P('VHT in weite VH').target.list[0].pos, 'VHweit');
+  assert.equal(P('RHB in weite RH').target.list[0].pos, 'RHweit');
+  // Tiefe bleibt Standard (lang), „weit“ ist keine Tiefe
+  assert.equal(P('VHT in weite VH').target.list[0].depth, 'lang');
+  // Beugungen + Ursprung
+  assert.equal(P('VHT aus weiter VH in RH').from.pos, 'VHweit');
+  assert.equal(P('2x VHT aus weiter VH frei').from.pos, 'VHweit');
+  // Englisch „wide“
+  assert.equal(P('FHT to wide FH').target.list[0].pos, 'VHweit');
+  assert.equal(P('BHB to wide BH').target.list[0].pos, 'RHweit');
+  // „weit“ ohne Seite ist keine Position -> Fehler
+  assert.equal(P('VHT in weit').type, 'error');
+});
+
+test('billige Mappen-Fixes: ganzem (Dativ), Slash mit Leerzeichen', () => {
+  // „ganzem Tisch“ (Dativ) wie „ganzer Tisch“
+  assert.equal(P('VHK aus ganzem Tisch in RH').from.pos, 'Mitte');
+  assert.equal(P('Block in ganzem Tisch').target.kind, 'whole');
+  // Leerzeichen um „/“ (PDF-Artefakt) -> Slash-Varianten/-Positionen
+  assert.equal(P('VHT/ RHT in RH').technik, 'VHT/RHT');
+  assert.equal(P('RHT / VHT in RH').technik, 'RHT/VHT');
+  assert.deepEqual(P('Aufschlag in VH/ Mitte /RH').target.list.map(x => x.pos), ['VH', 'Mitte', 'RH']);
+});
+
 test('Fuzzy „Meinten Sie …?“ — Vorschlag bei Tippfehler (kein Auto-Correct)', () => {
   // Ziel-Tippfehler -> Positions-Vorschlag
   const a = P('VHT in Mittte');

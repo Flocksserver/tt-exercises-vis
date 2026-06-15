@@ -19,8 +19,9 @@
 
   // seitliche Lage (0 = links … 1 = rechts) aus Sicht von Spieler A.
   // VH/RH bewusst weit in die Ecken, Mitte VH/RH klar in der jeweiligen Hälfte.
+  // „weit" = noch weiter außen (zur Seite raus) als VH bzw. RH.
   var LX_A = {
-    VH: 0.93, MitteVH: 0.74, Mitte: 0.50, MitteRH: 0.26, RH: 0.07
+    VHweit: 0.985, VH: 0.93, MitteVH: 0.74, Mitte: 0.50, MitteRH: 0.26, RH: 0.07, RHweit: 0.015
   };
   // Tiefe als Anteil der halben Tischlänge, vom Netz aus gemessen
   var DEPTH = { kurz: 0.26, halblang: 0.56, lang: 0.90 };

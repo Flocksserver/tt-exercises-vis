@@ -28,13 +28,15 @@ test('Spieler A: VH rechts, RH links, Mitte mittig', () => {
   assert.ok(Math.abs(mi.x - t.midX) < 0.001, 'Mitte = Tischmitte');
 });
 
-test('seitliche Reihenfolge VH > MitteVH > Mitte > MitteRH > RH (Spieler A)', () => {
+test('seitliche Reihenfolge VHweit > VH > MitteVH > Mitte > MitteRH > RH > RHweit (Spieler A)', () => {
   const t = G.table(0);
   const x = (p) => G.point(t, 'A', p, 'lang').x;
+  assert.ok(x('VHweit') > x('VH'), 'weite VH noch weiter außen');
   assert.ok(x('VH') > x('MitteVH'));
   assert.ok(x('MitteVH') > x('Mitte'));
   assert.ok(x('Mitte') > x('MitteRH'));
   assert.ok(x('MitteRH') > x('RH'));
+  assert.ok(x('RH') > x('RHweit'), 'weite RH noch weiter außen');
 });
 
 test('Spieler B ist spiegelverkehrt zu A', () => {

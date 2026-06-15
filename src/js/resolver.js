@@ -27,7 +27,7 @@
   // Ziel aus Ursprung + Richtung ableiten (Spieler stehen sich gegenüber).
   function deriveTarget(pos, dir) {
     if (dir === 'diagonal') return pos;            // VH→VH, RH→RH (kreuzt optisch)
-    var parallel = { VH: 'RH', RH: 'VH', MitteVH: 'MitteRH', MitteRH: 'MitteVH', Ellbogen: 'MitteVH', Mitte: 'Mitte' };
+    var parallel = { VH: 'RH', RH: 'VH', VHweit: 'RHweit', RHweit: 'VHweit', MitteVH: 'MitteRH', MitteRH: 'MitteVH', Ellbogen: 'MitteVH', Mitte: 'Mitte' };
     return parallel[pos] || pos;                    // parallel (längs)
   }
 
