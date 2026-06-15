@@ -21,6 +21,8 @@ No accounts, no install, no build step — a single static page that runs entire
 - **Rich notation:** directions (`diagonal` / `parallel`), depths (`kurz` / `halblang` / `lang`),
   zones (`ganzer Tisch`, `halber Tisch RH`, `Mitte VH`), repetitions (`2-3 mal`), and
   **alternatives** with `oder` on the technique, origin, target, direction — or whole strokes.
+- **Typo‑friendly.** Misspell a position, keyword or direction and the error points you at the
+  closest valid word — *“did you mean „Mitte"?”* (a suggestion only, never a silent rewrite).
 - **Smart arrows.** When both players hit the same line, the two arrows merge into a single
   two‑headed line with a colour gradient that switches at the net.
 - **Ball‑feeder (multiball) mode** for one‑player footwork drills.

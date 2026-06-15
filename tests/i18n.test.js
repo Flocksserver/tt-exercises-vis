@@ -28,6 +28,18 @@ test('Fehlermeldungen übersetzt + interpoliert', () => {
   assert.ok(i.error('noTech').length > 0);
 });
 
+test('Fehler-Vorschlag-Suffix („Meinten Sie …?“) je Sprache', () => {
+  const i = loadI18n('de');
+  const de = i.error('badTarget', 'Mittte', 'Mitte');
+  assert.ok(/Ungültiges Ziel .Mittte./.test(de));
+  assert.ok(/meinten Sie .Mitte./.test(de));
+  i.setLang('en');
+  const en = i.error('badTarget', 'middl', 'middle');
+  assert.ok(/did you mean .middle./.test(en));
+  // ohne Vorschlag kein Suffix
+  assert.ok(!/meinten|did you mean/.test(i.error('badTarget', 'X')));
+});
+
 test('Marker und Beispielnamen je Sprache', () => {
   const i = loadI18n('en');
   assert.equal(i.marker('frei'), 'free');

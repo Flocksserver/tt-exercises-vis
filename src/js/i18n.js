@@ -57,6 +57,7 @@
         badTarget: 'Ungültiges Ziel „{0}“. Erlaubt: VH, RH, Mitte, ganzer Tisch …',
         noTarget: 'Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.'
       },
+      errorSuffix: ' — meinten Sie „{0}“?',
       examples: ['RH-Konter (endlos)', 'Block-Wechsel (Beinarbeit)', 'Diagonal & Parallel', 'Ohne „aus“ (Ballverlauf)', 'VH-Beinarbeit (Mitte↔VH)', 'Kurzes Spiel → Eröffnung', 'Wechselpunkt & ganzer Tisch', 'Variabel & Wiederholung', 'Balleimer (Zuspiel)']
     },
     en: {
@@ -108,6 +109,7 @@
         badTarget: 'Invalid target „{0}“. Allowed: FH, BH, middle, whole table …',
         noTarget: 'Target missing: „… to BH“, a direction („diagonal“/„parallel“) or „irregular“.'
       },
+      errorSuffix: ' — did you mean „{0}“?',
       examples: ['BH counter (endless)', 'Block switch (footwork)', 'Diagonal & parallel', 'Without „aus“ (ball path)', 'FH footwork (Mitte↔VH)', 'Short game → opening', 'Crossover & whole table', 'Variable & repetition', 'Ball feeder (multiball)']
     }
   };
@@ -124,7 +126,11 @@
   var lang = (stored() === 'de' || stored() === 'en') ? stored() : detect();
 
   function t(key) { return (DICT[lang] && DICT[lang][key]) != null ? DICT[lang][key] : (DICT.de[key] || key); }
-  function error(code, arg) { return fmt((DICT[lang].errors && DICT[lang].errors[code]) || DICT.de.errors[code] || code, arg); }
+  function error(code, arg, suggestion) {
+    var msg = fmt((DICT[lang].errors && DICT[lang].errors[code]) || DICT.de.errors[code] || code, arg);
+    if (suggestion) msg += fmt(DICT[lang].errorSuffix || DICT.de.errorSuffix, suggestion);
+    return msg;
+  }
   function marker(kind) { return (DICT[lang].marker || DICT.de.marker)[kind]; }
   function depthWord(d) { return (DICT[lang].depth || DICT.de.depth)[d] || d; }
   function aria(key, arg) { return fmt((DICT[lang].aria || DICT.de.aria)[key] || key, arg); }

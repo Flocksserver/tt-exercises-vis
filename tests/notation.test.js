@@ -243,6 +243,34 @@ test('validateCell', () => {
   assert.equal(TTV.notation.validateCell('VHT aus Foo in RH').valid, false);
 });
 
+test('Fuzzy „Meinten Sie …?“ — Vorschlag bei Tippfehler (kein Auto-Correct)', () => {
+  // Ziel-Tippfehler -> Positions-Vorschlag
+  const a = P('VHT in Mittte');
+  assert.equal(a.type, 'error');
+  assert.equal(a.code, 'badTarget');
+  assert.equal(a.suggestion, 'Mitte');
+  // Ursprungs-Tippfehler -> Positions-Vorschlag
+  const b = P('VHT aus Mittte in RH');
+  assert.equal(b.code, 'badFrom');
+  assert.equal(b.suggestion, 'Mitte');
+  // Seiten-Tippfehler -> VH/RH (Display groß)
+  assert.equal(P('VHT in RHH').suggestion, 'RH');
+  // Richtungs-Tippfehler landet als fehlendes Ziel -> Keyword-Vorschlag
+  const c = P('VHT aus VH diagonl');
+  assert.equal(c.code, 'noTarget');
+  assert.equal(c.suggestion, 'diagonal');
+  // EN: middl -> middle (klein), kein Auto-Correct
+  assert.equal(P('FHT to middl').suggestion, 'middle');
+  // KEIN Vorschlag bei gültiger Eingabe; Technik wird nie „korrigiert“
+  assert.equal(P('VHT aus VH in Mitte').type, 'stroke');
+  assert.equal(P('FHT from FH to BH').type, 'stroke');
+  assert.equal(P('Block in RH').type, 'stroke');
+  // Technik-Fragment „RHT“ (in „VHT oder RHT“ ohne Ziel) wird NICHT zu „RH“ vorgeschlagen
+  assert.equal(P('VHT oder RHT').suggestion, null);
+  // validateCell reicht den Vorschlag durch
+  assert.equal(TTV.notation.validateCell('VHT in Mittte').suggestion, 'Mitte');
+});
+
 test('labelFor', () => {
   assert.equal(TTV.notation.labelFor(P('2-3 mal VHT aus VH diagonal')), '2-3× VHT diag');
   assert.equal(TTV.notation.labelFor(P('VHT aus RH parallel')), 'VHT parallel');

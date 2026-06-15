@@ -38,7 +38,7 @@
   }
 
   function T(k) { return TTV.i18n ? TTV.i18n.t(k) : k; }
-  function errText(res) { return res.valid ? '' : (TTV.i18n ? TTV.i18n.error(res.code, res.arg) : res.message); }
+  function errText(res) { return res.valid ? '' : (TTV.i18n ? TTV.i18n.error(res.code, res.arg, res.suggestion) : res.message); }
 
   function renderNow() {
     var parsedRows = buildParsedRows();
