@@ -11,10 +11,13 @@
 (function (TTV) {
   'use strict';
 
-  var TABLE_W = 196;
-  var TABLE_L = 304;
-  var MARGIN_X = 30;
-  var MARGIN_Y = 44;
+  // Tische groß; Außenrand (MARGIN_X) und oben/unten (MARGIN_Y) knapp, ABER die
+  // Lücke ZWISCHEN den Tischen (GAP) bleibt großzügig (sonst kleben sie aneinander).
+  var TABLE_W = 180;
+  var TABLE_L = 320;
+  var GAP = 48;        // Abstand zwischen benachbarten Tischen
+  var MARGIN_X = 20;   // Außenrand links/rechts (klein -> Tisch näher an die Kante)
+  var MARGIN_Y = 36;   // oben/unten (nur so viel wie das Label braucht)
   var INSET = 16;
 
   // seitliche Lage (0 = links … 1 = rechts) aus Sicht von Spieler A.
@@ -29,13 +32,13 @@
 
   function layout(numberOfTables) {
     return {
-      width: numberOfTables * (TABLE_W + MARGIN_X) + MARGIN_X,
+      width: 2 * MARGIN_X + numberOfTables * TABLE_W + Math.max(0, numberOfTables - 1) * GAP,
       height: TABLE_L + 2 * MARGIN_Y
     };
   }
 
   function table(index) {
-    var startX = MARGIN_X + index * (TABLE_W + MARGIN_X);
+    var startX = MARGIN_X + index * (TABLE_W + GAP);
     var startY = MARGIN_Y;
     return {
       startX: startX,
