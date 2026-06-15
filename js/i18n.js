@@ -35,6 +35,7 @@
         '<li><code>Frei</code> beendet, <code>endlos</code> = Dauerübung.</li></ul>',
       legExt: '<h3>Erweiterungen</h3><ul class="legend-list">' +
         '<li><b>Ohne „aus“:</b> nur das Ziel (<code>RHK/RHT in RH</code>); Start = Schlaghand (RH/VH) bzw. letzter Ball.</li>' +
+        '<li><b>Ohne Ziel &amp; Richtung:</b> gilt automatisch als <code>diagonal</code> aus der Schlaghand (<code>VHT</code> = <code>VHT aus VH diagonal</code>).</li>' +
         '<li><b>Richtung:</b> <code>diagonal</code> / <code>parallel</code> – Ziel wird abgeleitet.</li>' +
         '<li><b>Tiefe:</b> <code>kurz</code> / <code>halblang</code> / <code>lang</code> (z. B. <code>in kurze Mitte</code>).</li>' +
         '<li><b>Alternativen:</b> Ziel <code>… in Mitte oder RH</code>, Ursprung <code>aus Mitte oder RH …</code> oder ganze Schläge <code>VHT aus VH in RH oder RHT aus RH in RH</code>.</li>' +
@@ -87,6 +88,7 @@
         '<li><code>free</code> ends, <code>endless</code> = continuous drill.</li></ul>',
       legExt: '<h3>Extensions</h3><ul class="legend-list">' +
         '<li><b>Without „from“:</b> target only (<code>FHC/FHT to BH</code>); origin = playing hand (FH/BH) or last ball.</li>' +
+        '<li><b>No target &amp; direction:</b> defaults to <code>diagonal</code> from the playing hand (<code>FHT</code> = <code>FHT from FH diagonal</code>).</li>' +
         '<li><b>Direction:</b> <code>diagonal</code> / <code>parallel</code> – target is derived.</li>' +
         '<li><b>Depth:</b> <code>short</code> / <code>half-long</code> / <code>long</code>, e.g. <code>to short middle</code>.</li>' +
         '<li><b>Alternatives:</b> target <code>… to middle or BH</code>, origin <code>from middle or BH …</code> or whole strokes <code>FHT from FH to BH or BHT from BH to BH</code>.</li>' +

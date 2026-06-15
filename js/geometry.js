@@ -11,11 +11,11 @@
 (function (TTV) {
   'use strict';
 
-  var TABLE_W = 164;
-  var TABLE_L = 274;
-  var MARGIN_X = 52;
-  var MARGIN_Y = 56;
-  var INSET = 15;
+  var TABLE_W = 196;
+  var TABLE_L = 304;
+  var MARGIN_X = 30;
+  var MARGIN_Y = 44;
+  var INSET = 16;
 
   // seitliche Lage (0 = links … 1 = rechts) aus Sicht von Spieler A.
   // VH/RH bewusst weit in die Ecken, Mitte VH/RH klar in der jeweiligen Hälfte.
@@ -53,22 +53,26 @@
    * @param {string} pos   VH|RH|Mitte|MitteVH|MitteRH|Ellbogen
    * @param {string} depth kurz|halblang|lang
    */
-  function point(t, side, pos, depth) {
-    var lx = LX_A[pos];
+  // Punkt aus roher seitlicher Lage (0 = ganz RH-Seite … 1 = ganz VH-Seite, Sicht A).
+  function pointLx(t, side, lx, depth) {
     if (lx == null) lx = 0.5;
     if (side === 'B') lx = 1 - lx;
     var x = t.startX + INSET + lx * (t.width - 2 * INSET);
-
     var df = DEPTH[depth] != null ? DEPTH[depth] : DEPTH.lang;
     var half = t.length / 2;
     var y = side === 'A' ? (t.midY + df * half) : (t.midY - df * half);
-
     return { x: x, y: y };
+  }
+
+  function point(t, side, pos, depth) {
+    var lx = LX_A[pos];
+    if (lx == null) lx = 0.5;
+    return pointLx(t, side, lx, depth);
   }
 
   TTV.geometry = {
     TABLE_W: TABLE_W, TABLE_L: TABLE_L, MARGIN_X: MARGIN_X, MARGIN_Y: MARGIN_Y,
-    layout: layout, table: table, point: point,
+    layout: layout, table: table, point: point, pointLx: pointLx,
     POSITIONS: Object.keys(LX_A), DEPTHS: Object.keys(DEPTH)
   };
 })(window.TTV = window.TTV || {});
