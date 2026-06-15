@@ -109,6 +109,87 @@
     return null;
   }
 
+  // ─── Fuzzy „Meinten Sie …?“ (Vorschlag-only, kein Auto-Correct) ───
+  // In-house, zero-dep. Greift NUR bei einem Parse-Fehler und schlägt das nächste
+  // Wort aus dem geschlossenen Vokabular vor (DE+EN). Technik bleibt Freitext.
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    if (!m) return n;
+    if (!n) return m;
+    var prev = new Array(n + 1), cur = new Array(n + 1), i, j;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (j = 1; j <= n; j++) {
+        var cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      }
+      var tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  }
+  function collectWords(group) {
+    if (Array.isArray(group)) return group.slice();
+    var out = [];
+    Object.keys(group).forEach(function (k) { group[k].forEach(function (w) { out.push(w); }); });
+    return out;
+  }
+  function vocabFrom() {
+    var seen = {}, out = [];
+    for (var k = 0; k < arguments.length; k++) {
+      collectWords(arguments[k]).forEach(function (w) {
+        w = String(w).toLowerCase();
+        if (!seen[w]) { seen[w] = true; out.push(w); }
+      });
+    }
+    return out;
+  }
+  // Positions-Slot (aus/in): Positionen, Seiten, ganz/halb/Tisch.
+  var POS_VOCAB = vocabFrom(LEXICON.position, LEXICON.side, LEXICON.whole, LEXICON.half, LEXICON.tisch);
+  // Keyword-Slot (fehlendes Ziel): Richtung, Tiefe, Präpositionen — KEINE Seiten/Positionen
+  // (sonst würde ein Technik-Fragment wie „RHT“ fälschlich zu „RH“ vorgeschlagen).
+  var KW_VOCAB = vocabFrom(LEXICON.direction, LEXICON.depth, LEXICON.from, LEXICON.prep, LEXICON.range, LEXICON.alt);
+  var DISPLAY = { mitte: 'Mitte' };   // dt. Substantiv groß; „middle“/Keywords bleiben klein
+  function display(w) {
+    if (DISPLAY[w]) return DISPLAY[w];
+    if (SIDE_OF[w]) return w.toUpperCase();   // vh/fh/rh/bh -> VH/FH/RH/BH
+    return w;
+  }
+  function suggest(token, vocab) {
+    var w = lc(token);
+    if (w.length < 3) return null;            // zu kurz -> zu viel Rauschen
+    var max = w.length <= 4 ? 1 : 2;          // Schwellwert nach Länge
+    var best = null, bestD = max + 1;
+    for (var k = 0; k < vocab.length; k++) {
+      var cand = vocab[k];
+      if (cand === w) return null;            // exakt -> kein Tippfehler
+      if (Math.abs(cand.length - w.length) > max) continue;
+      var d = levenshtein(w, cand);
+      if (d < bestD) { bestD = d; best = cand; }
+    }
+    return (best && bestD >= 1 && bestD <= max) ? display(best) : null;
+  }
+  // Wird ein Token bereits von irgendeiner Rolle erkannt? (dann kein Vorschlag)
+  function isVocabKnown(tok) {
+    var w = lc(tok);
+    if (!w) return true;
+    if (DEPTH_OF[w] || DIR_OF[w] || POS_OF[w] || SIDE_OF[w]) return true;
+    if (ARTICLE[w] || SPIN[w] || FROM[w] || PREP[w] || RANGE[w] || ALT[w]) return true;
+    if (WHOLE[w] || HALFW[w] || TISCH[w] || DER[w]) return true;
+    if (regularOf(tok)) return true;
+    if (readPosition([tok], 0)) return true;
+    return false;
+  }
+  // Bei fehlendem Ziel: erstes unbekanntes Token (ab Technik+1) gegen Keyword-Vokabular.
+  function bestKeywordSuggestion(tokens, startIndex) {
+    for (var k = startIndex; k < tokens.length; k++) {
+      if (isVocabKnown(tokens[k])) continue;
+      var s = suggest(tokens[k], KW_VOCAB);
+      if (s) return s;
+    }
+    return null;
+  }
+
   // Fehlermeldungen als Codes (für i18n); .message bleibt die deutsche Standardform.
   var MSG_DE = {
     noTech: 'Es fehlt die Technik (z. B. „VHT“).',
@@ -117,9 +198,13 @@
     badTarget: 'Ungültiges Ziel „{0}“. Erlaubt: VH, RH, Mitte, ganzer Tisch …',
     noTarget: 'Es fehlt das Ziel: „… in VH“, eine Richtung („diagonal“/„parallel“) oder „unregelmäßig“.'
   };
-  function fail(code, arg) {
+  function fail(code, arg, suggestion) {
     var msg = (MSG_DE[code] || code).replace('{0}', arg != null ? arg : '');
-    return { type: 'error', code: code, arg: (arg != null ? String(arg) : ''), message: msg };
+    if (suggestion) msg += ' — meinten Sie „' + suggestion + '“?';
+    return {
+      type: 'error', code: code, arg: (arg != null ? String(arg) : ''),
+      suggestion: suggestion || null, message: msg
+    };
   }
 
   // Versucht ab Index i eine (ggf. mehrteilige) Position zu lesen.
@@ -336,7 +421,7 @@
       var d1 = depthOf(coreTokens[i] || '');
       if (d1) { fromDepth = d1; i++; }
       var fp = readPosition(coreTokens, i);
-      if (!fp) return fail('badFrom', coreTokens[i] || '');
+      if (!fp) return fail('badFrom', coreTokens[i] || '', suggest(coreTokens[i] || '', POS_VOCAB));
       i += fp.n;
       // Halb-/Ganzfeld als Ursprung -> repräsentativer Punkt
       from = { pos: HALF_POINT[fp.pos] || fp.pos, depth: fromDepth };
@@ -359,14 +444,14 @@
     if (PREP[lc(coreTokens[i])]) {
       i++;
       var first = readTargetItem(coreTokens, i, defDepth);
-      if (first.error) return fail(first.code, first.arg);
+      if (first.error) return fail(first.code, first.arg, first.suggestion);
       i = first.next;
       var firstPos = first.items[0].pos;
 
       if (RANGE[lc(coreTokens[i])]) {
         i++;
         var second = readTargetItem(coreTokens, i, defDepth);
-        if (second.error) return fail(second.code, second.arg);
+        if (second.error) return fail(second.code, second.arg, second.suggestion);
         i = second.next;
         target = { kind: 'range', range: { from: firstPos, to: second.items[0].pos }, list: [] };
       } else if (firstPos === 'whole') {
@@ -379,7 +464,7 @@
         while (ALT[lc(coreTokens[i])]) {
           i++;
           var more = readTargetItem(coreTokens, i, defDepth);
-          if (more.error) return fail(more.code, more.arg);
+          if (more.error) return fail(more.code, more.arg, more.suggestion);
           i = more.next;
           more.items.forEach(function (it) { list.push(it); });
         }
@@ -389,7 +474,7 @@
 
     // 5) Plausibilität: ohne Ziel brauchen wir Richtung, „unregelmäßig“ oder „frei“ (offen)
     if (!target && !direction && regular !== 'unregelmaessig' && !openEnd) {
-      return fail('noTarget');
+      return fail('noTarget', null, bestKeywordSuggestion(coreTokens, 1));
     }
 
     // übrige Tokens werden tolerant ignoriert (Freitext-Zusätze in echten Mappen)
@@ -420,13 +505,13 @@
       }
     }
     var p = readPosition(tokens, i);
-    if (!p) return { error: true, code: 'badTarget', arg: tokens[i] || '' };
+    if (!p) return { error: true, code: 'badTarget', arg: tokens[i] || '', suggestion: suggest(tokens[i] || '', POS_VOCAB) };
     return { items: [{ pos: p.pos, depth: depth }], next: i + p.n };
   }
 
   function validateCell(rawText) {
     var parsed = parseCell(rawText);
-    if (parsed.type === 'error') return { valid: false, code: parsed.code, arg: parsed.arg, message: parsed.message };
+    if (parsed.type === 'error') return { valid: false, code: parsed.code, arg: parsed.arg, suggestion: parsed.suggestion || null, message: parsed.message };
     return { valid: true, message: '' };
   }
 

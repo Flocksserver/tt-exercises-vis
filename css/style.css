@@ -91,7 +91,9 @@ code {
 
 /* Input table */
 .table-scroll { overflow-x: auto; }
-.input-table { width: 100%; border-collapse: collapse; }
+/* fixed layout: Spaltenbreiten hängen NICHT vom Inhalt ab -> Fehlermeldung
+   verbreitert die Zelle nicht, die UI springt nicht. */
+.input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .input-table th, .input-table td {
   border-bottom: 1px solid var(--line);
   padding: 8px;
@@ -130,6 +132,7 @@ code {
   font-size: .78rem;
   margin-top: 4px;
   min-height: 0;
+  overflow-wrap: anywhere;   /* lange Tokens umbrechen statt Zelle sprengen */
 }
 
 /* Buttons / toolbar */
