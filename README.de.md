@@ -40,7 +40,7 @@ Frei | endlos
 
 Richtung = diagonal | parallel
 Tiefe    = kurz | halblang | lang
-POSITION = VH | RH | weite VH/RH | Mitte | Mitte VH/RH | ganzer Tisch | halber Tisch VH/RH
+POSITION = VH | RH | weite/tiefe VH/RH | Mitte | Mitte VH/RH | ganzer Tisch | halber Tisch VH/RH
 ZIEL     = POSITION [oder [Tiefe] POSITION] …   |   POSITION bis POSITION
 ```
 

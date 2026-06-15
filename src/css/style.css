@@ -208,9 +208,17 @@ code {
   font-size: .9rem;
 }
 .site-footer a { color: var(--green-dark); }
-.site-footer .bmc { margin-top: 12px; }
+/* Footer-Zeile: Text links, „Buy me a coffee" rechts (umbricht auf Mobile). */
+.site-footer .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.site-footer .wrap > p { margin: 0; }
+.site-footer .bmc { margin-left: auto; }
 
 @media (max-width: 560px) {
   .card { padding: 16px; }
-  .cell-input { min-width: 140px; }
+  /* nicht über die Zelle hinauswachsen -> Textfelder überlagern sich nicht mehr */
+  .cell-input { min-width: 0; }
+  .input-table th, .input-table td { padding: 7px 5px; }
+  .row-num { width: 22px; }
+  .row-actions { width: 30px; }
+  .site-footer .bmc { margin-left: 0; }
 }

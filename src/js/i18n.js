@@ -30,7 +30,7 @@
         '<p class="syntax"><code>[N&nbsp;mal] <b>TECHNIK</b> [Richtung] [aus [Tiefe] <b>POS</b>] in [Tiefe] <b>ZIEL</b></code></p>' +
         '<ul class="legend-list">' +
         '<li><b>TECHNIK</b> – ein Wort; Varianten mit „/“ (<code>RHK/RHT</code>). Auch <code>Aufschlag</code>/<code>AS</code>, <code>Block</code>, <code>Schupf</code>, <code>Flip</code>.</li>' +
-        '<li><b>POSITION</b> – <code>VH</code>, <code>RH</code>, <code>weite VH/RH</code> (weiter außen), <code>Mitte</code>, <code>Mitte VH/RH</code>, <code>ganzer Tisch</code>, <code>halber Tisch RH/VH</code>.</li>' +
+        '<li><b>POSITION</b> – <code>VH</code>, <code>RH</code>, <code>weite/tiefe VH/RH</code> (weiter außen), <code>Mitte</code>, <code>Mitte VH/RH</code>, <code>ganzer Tisch</code>, <code>halber Tisch RH/VH</code>.</li>' +
         '<li><code>in</code> = Ziel (auch <code>auf</code>), <code>aus</code> = Start (optional).</li>' +
         '<li><code>Frei</code> beendet, <code>endlos</code> = Dauerübung.</li></ul>',
       legExt: '<h3>Erweiterungen</h3><ul class="legend-list">' +

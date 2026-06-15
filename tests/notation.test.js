@@ -224,8 +224,8 @@ test('Kurzformen & Synonyme (CampMappe)', () => {
   // Mi = Mitte
   assert.equal(P('VHT aus VH in Mi').target.list[0].pos, 'Mitte');
   assert.equal(P('VHT aus Mi in RH').from.pos, 'Mitte');
-  // tiefe = lang
-  assert.equal(P('RHB in tiefe VH').target.list[0].depth, 'lang');
+  // tiefe = weit (Synonym; laterale Außen-Position, KEINE Tiefe)
+  assert.equal(P('RHB in tiefe VH').target.list[0].pos, 'VHweit');
   // Wechselpunkt / EB = Mitte (Synonym), mit Artikel
   assert.equal(P('Block auf den Wechselpunkt').target.list[0].pos, 'Mitte');
   assert.equal(P('VHT auf EB').target.list[0].pos, 'Mitte');
@@ -281,6 +281,12 @@ test('„weit“ = laterale Position (weiter außen), KEINE Tiefe', () => {
   // Englisch „wide“
   assert.equal(P('FHT to wide FH').target.list[0].pos, 'VHweit');
   assert.equal(P('BHB to wide BH').target.list[0].pos, 'RHweit');
+  // „tief/tiefe“ ist Synonym für weit (nicht lang!)
+  assert.equal(P('VHT in tiefe VH').target.list[0].pos, 'VHweit');
+  assert.equal(P('RHB aus tiefer RH in VH').from.pos, 'RHweit');
+  // „lang“ bleibt Tiefe
+  assert.equal(P('VHT in lang VH').target.list[0].depth, 'lang');
+  assert.equal(P('VHT in lang VH').target.list[0].pos, 'VH');
   // „weit“ ohne Seite ist keine Position -> Fehler
   assert.equal(P('VHT in weit').type, 'error');
 });
