@@ -56,10 +56,10 @@
     article: ['den', 'die', 'das', 'der', 'dem', 'eine', 'einen', 'einer', 'the', 'a', 'an'],
     position: {              // Ein-Wort-Synonyme -> kanonische Position (DE + EN)
       // Ellbogen/Ellenbogen/Wechselpunkt/Bauch/elbow = Synonyme für Mitte
-      Mitte: ['mitte', 'mi', 'middle', 'mid', 'center', 'centre', 'ellbogen', 'ellenbogen', 'eb', 'bauch', 'wechselpunkt', 'elbow']
+      Mitte: ['mitte', 'mi', 'm', 'middle', 'mid', 'center', 'centre', 'ellbogen', 'ellenbogen', 'elle', 'eb', 'bauch', 'wechselpunkt', 'elbow']
     },
     // Seiten-Synonyme (für VH/RH-Erkennung in Positionen/Zonen)
-    side: { vh: ['vh', 'fh', 'forehand'], rh: ['rh', 'bh', 'backhand'] },
+    side: { vh: ['vh', 'fh', 'forehand', 'vorhand'], rh: ['rh', 'bh', 'backhand', 'rückhand', 'rueckhand'] },
     // Schnitt-/Rotations-Annotationen -> ignoriert (DE + EN)
     spin: ['us', 'üs', 'uüs', 'unterschnitt', 'überschnitt', 'seitschnitt', 'schnitt', 'rotation', 'spin',
            'topspin', 'backspin', 'sidespin', 'underspin', 'no-spin', 'nospin'],
@@ -228,10 +228,13 @@
     if (fr) {
       var fj = i + 1;
       if (TISCH[lc(tokens[fj])]) fj++;                                  // „2/3 Tisch VH“
-      var fside = sideOf(tokens[fj]) || sideOf(String(tokens[fj] || '').replace(/[-–]tisch$/i, ''));
+      // Seite, ggf. mit -Tisch/-Seite/-Feld… als Suffix („2/3 VH-Seite“, „¾ VH-Tisch“)
+      var sraw = String(tokens[fj] || '');
+      var fside = sideOf(sraw) || sideOf(sraw.replace(/[-–](?:tisch|seite|feld|bereich|ecke|h(?:ä|ae)lfte|side|table|area|field|corner)$/i, ''));
       if (!fside) return null;                                          // Bruch ohne Seite -> keine Position
       fj++;
-      if (TISCH[lc(tokens[fj])]) fj++;                                  // „2/3 VH Tisch“
+      var nx = lc(tokens[fj]);                                          // „2/3 VH Tisch“, „2/3 VH Seite“
+      if (TISCH[nx] || AREA_SUFFIX.test(nx) || HALF_SUFFIX.test(nx)) fj++;
       return { pos: 'frac:' + fside + ':' + fr.num + ':' + fr.den, n: fj - i };
     }
 
@@ -271,6 +274,10 @@
     // „VH-Bauch“ ~ Mitte der VH (bare „Bauch“ wird oben zu Mitte)
     var bm = t0.match(/^([a-zäöü]+)[-–]bauch$/i);
     if (bm && sideOf(bm[1])) return { pos: sideOf(bm[1]) === 'vh' ? 'MitteVH' : 'MitteRH', n: 1 };
+
+    // „VH-Mitte“ / „RH-Mi“ (Bindestrich) ~ Mitte der VH/RH
+    var vm = t0.match(/^([a-zäöü]+)[-–](?:mitte|mi|m)$/i);
+    if (vm && sideOf(vm[1])) return { pos: sideOf(vm[1]) === 'vh' ? 'MitteVH' : 'MitteRH', n: 1 };
 
     // einzelnes VH/RH/FH/BH, ggf. mit Suffix-Wort („RH Bereich“, „FH area“, „RH-Diagonale“)
     var base = t0.replace(/[-–](bereich|feld|seite|ecke|diagonale|area|corner|field|side)$/i, '');

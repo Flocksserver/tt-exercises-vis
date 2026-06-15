@@ -218,6 +218,22 @@ test('Bruchzonen: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“', () => {
   // unechter Bruch / ohne Seite -> keine Bruchzone
   assert.equal(P('Block in 3/2 VH').type, 'error');     // 3/2 ist kein echter Bruch < 1
   assert.equal(P('Block in 2/3').type, 'error');        // ohne Seite
+  // Bruch mit -Seite/Seite-Suffix (docx-Mappen)
+  assert.equal(P('Block in 2/3 VH-Seite').target.spec, 'frac:vh:2:3');
+  assert.equal(P('VHB in 2/3 VH Seite').target.spec, 'frac:vh:2:3');
+});
+
+test('docx-Mappen Synonyme: M/Elle = Mitte, Vorhand/Rückhand, VH-Mitte', () => {
+  // M / Elle = Mitte
+  assert.equal(P('RHB in M').target.list[0].pos, 'Mitte');
+  assert.equal(P('VHT in Elle').target.list[0].pos, 'Mitte');
+  // Vorhand/Rückhand (ausgeschrieben) = VH/RH
+  assert.equal(P('VHT aus Rückhand in VH').from.pos, 'RH');
+  assert.equal(P('RHT aus Vorhand in RH').from.pos, 'VH');
+  // VH-Mitte / RH-Mi (Bindestrich) = Mitte der VH/RH
+  assert.equal(P('VHB aus VH in VH-Mitte').target.list[0].pos, 'MitteVH');
+  assert.equal(P('VHT aus VH-Mitte in VH').from.pos, 'MitteVH');
+  assert.equal(P('Block in RH-Mi').target.list[0].pos, 'MitteRH');
 });
 
 test('Kurzformen & Synonyme (CampMappe)', () => {
