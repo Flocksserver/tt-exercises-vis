@@ -58,20 +58,25 @@
    * @param {string} depth kurz|halblang|lang
    */
   // Punkt aus roher seitlicher Lage (0 = ganz RH-Seite … 1 = ganz VH-Seite, Sicht A).
+  // depth: Tiefen-Schlüssel (kurz/halblang/lang) ODER eine rohe Zahl (Anteil halbe Länge).
   function pointLx(t, side, lx, depth) {
     if (lx == null) lx = 0.5;
     if (side === 'B') lx = 1 - lx;
     var x = t.startX + INSET + lx * (t.width - 2 * INSET);
-    var df = DEPTH[depth] != null ? DEPTH[depth] : DEPTH.lang;
+    var df = (typeof depth === 'number') ? depth : (DEPTH[depth] != null ? DEPTH[depth] : DEPTH.lang);
     var half = t.length / 2;
     var y = side === 'A' ? (t.midY + df * half) : (t.midY - df * half);
     return { x: x, y: y };
   }
 
+  // „weit/tief" sitzt über die Ecke raus -> bei Standard-Tiefe etwas Richtung Netz ziehen.
+  var WEIT_DEPTH = 0.80;   // statt lang (0.90): leicht netzwärts
   function point(t, side, pos, depth) {
     var lx = LX_A[pos];
     if (lx == null) lx = 0.5;
-    return pointLx(t, side, lx, depth);
+    var d = depth;
+    if ((pos === 'VHweit' || pos === 'RHweit') && (d == null || d === 'lang')) d = WEIT_DEPTH;
+    return pointLx(t, side, lx, d);
   }
 
   TTV.geometry = {

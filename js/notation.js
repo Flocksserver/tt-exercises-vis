@@ -42,8 +42,7 @@
     depth: {                 // Wort -> Tiefe (DE + EN)
       kurz: ['kurz', 'kurze', 'kurzer', 'kurzes', 'kurzen', 'kurzem', 'short'],
       halblang: ['halblang', 'halblange', 'halblanger', 'halblanges', 'halblangen', 'halblangem', 'half-long', 'halflong'],
-      lang: ['lang', 'lange', 'langer', 'langes', 'langen', 'langem',
-             'tief', 'tiefe', 'tiefer', 'tiefes', 'tiefen', 'tiefem', 'long', 'deep']
+      lang: ['lang', 'lange', 'langer', 'langes', 'langen', 'langem', 'long', 'deep']
     },
     direction: {             // Wort -> Richtung (DE + EN)
       diagonal: ['diagonal', 'diagonale', 'diagonaler', 'cross', 'crosscourt'],
@@ -73,7 +72,9 @@
     whole: ['ganze', 'ganzer', 'ganzen', 'ganzem', 'whole', 'full'],
     half: ['halbe', 'halber', 'halben', 'half'],
     // „weit“ = laterale Position: noch weiter außen (zur Seite raus) als VH/RH – KEINE Tiefe!
-    weit: ['weit', 'weite', 'weiter', 'weites', 'weiten', 'weitem', 'wide'],
+    // „tief/tiefe …“ ist im Camp-Sprachgebrauch ein Synonym dafür (nicht = lang!).
+    weit: ['weit', 'weite', 'weiter', 'weites', 'weiten', 'weitem',
+           'tief', 'tiefe', 'tiefer', 'tiefes', 'tiefen', 'tiefem', 'wide'],
     der: ['der', 'of']                                          // „Mitte der VH“ / „middle of FH“
   };
 
