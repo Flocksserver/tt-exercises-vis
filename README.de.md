@@ -109,6 +109,12 @@ src/
 tests/                  Node-Testsuite
 ```
 
+## Unterstützen
+
+Wenn dir das Tool hilft, kannst du die Weiterentwicklung unterstützen:
+
+<a href="https://www.buymeacoffee.com/flocksservK"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="44"></a>
+
 ## Lizenz
 
 [MIT](LICENSE) — frei für jeden Zweck (privat und kommerziell). Von Marcel Kaufmann.

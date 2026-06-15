@@ -208,6 +208,7 @@ code {
   font-size: .9rem;
 }
 .site-footer a { color: var(--green-dark); }
+.site-footer .bmc { margin-top: 12px; }
 
 @media (max-width: 560px) {
   .card { padding: 16px; }

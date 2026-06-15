@@ -118,6 +118,12 @@ tests/                  Node test suite
 Plain HTML, CSS and vanilla JavaScript — no framework, no bundler, no runtime dependencies.
 The whole thing is a handful of small files served as static assets.
 
+## Support
+
+If this tool saves you time, you can support its development:
+
+<a href="https://www.buymeacoffee.com/flocksservK"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="44"></a>
+
 ## License
 
 [MIT](LICENSE) — free for any use, private or commercial. Created by Marcel Kaufmann.
