@@ -594,7 +594,7 @@
     if (stroke.strokeDepth && stroke.strokeDepth !== 'lang') {
       parts.push((TTV.i18n && TTV.i18n.depthWord) ? TTV.i18n.depthWord(stroke.strokeDepth) : stroke.strokeDepth);
     }
-    parts.push(stroke.technik);
+    parts.push((TTV.i18n && TTV.i18n.tech) ? TTV.i18n.tech(stroke.technik) : stroke.technik);
     var dirs = (stroke.directions && stroke.directions.length) ? stroke.directions : (stroke.direction ? [stroke.direction] : []);
     if (dirs.length) parts.push(dirs.map(function (d) { return d === 'diagonal' ? 'diag' : 'parallel'; }).join('/'));
     var tag = stroke.regular === 'unregelmaessig' ? 'unr' :
