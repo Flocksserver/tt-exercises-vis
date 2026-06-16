@@ -120,7 +120,7 @@ Wenn dir das Tool hilft, kannst du die Weiterentwicklung unterstützen:
 
 ## Entstehung
 
-Teile dieses Projekts sind in Zusammenarbeit mit KI-Werkzeugen entstanden.
+Mit viel Liebe zum Sport und KI gebaut. 🏓🤖
 
 ## Lizenz
 

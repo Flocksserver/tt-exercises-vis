@@ -120,7 +120,7 @@ tests/                  Node test suite
 Plain HTML, CSS and vanilla JavaScript — no framework, no bundler, no runtime dependencies.
 The whole thing is a handful of small files served as static assets.
 
-Parts of this project were developed in collaboration with AI tooling.
+Built with a lot of love for the sport — and with AI. 🏓🤖
 
 ## Support
 
