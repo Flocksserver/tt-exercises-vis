@@ -397,15 +397,23 @@
         }
         continue;
       }
-      // „über Ecke [raus]“ OHNE folgende Seite = Modifier: diagonal + weit (über die Ecke).
-      // Mit Seite (z. B. „über Ecke VH“) bleibt es eine Position -> nicht hier strippen.
-      if ((lc(tok) === 'über' || lc(tok) === 'ueber') && /^ecken?$/.test(lc(toks[p + 1]))) {
-        var q = p + 2;
-        if (/^(raus|heraus|außen|aussen)$/.test(lc(toks[q]))) q++;
-        if (!sideOf(toks[q])) {
+      // Freistehende „Ecke“ (mit/ohne „über“, Artikel, „raus“) OHNE Seiten-Wort direkt
+      // davor/danach = Modifier: diagonal + weit („über die Ecke“). „in ecke“, „über Ecke
+      // raus“, „in eine Ecke“ … -> Ziel diagonal an die Außenkante. Mit Seite („über Ecke
+      // VH“, „VH Ecke“, „Ecke RH“) bleibt es eine Position (readPosition).
+      var isUeberEcke = (lc(tok) === 'über' || lc(tok) === 'ueber') && /^ecken?$/.test(lc(toks[p + 1]));
+      var isBareEcke = /^ecken?$/.test(lc(tok));
+      if (isUeberEcke || isBareEcke) {
+        var ei = isUeberEcke ? p + 2 : p + 1;
+        if (/^(raus|heraus|außen|aussen)$/.test(lc(toks[ei]))) ei++;
+        var nextS = sideOf(toks[ei]);
+        var prevS = isBareEcke && coreTokens.length ? sideOf(coreTokens[coreTokens.length - 1]) : null;
+        if (!nextS && !prevS) {
           overCorner = true;
           if (!directions.length) directions.push('diagonal');
-          p = q - 1;
+          if (coreTokens.length && ARTICLE[lc(coreTokens[coreTokens.length - 1])]) coreTokens.pop();
+          if (coreTokens.length && PREP[lc(coreTokens[coreTokens.length - 1])]) coreTokens.pop();
+          p = ei - 1;
           continue;
         }
       }
