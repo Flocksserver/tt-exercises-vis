@@ -55,6 +55,12 @@
         '<li>Gestrichelt = Alternative (<code>oder</code>) bzw. Zuspiel.</li>' +
         '<li>Schattierte Fläche = Bereich (<code>bis</code>), <code>ganzer Tisch</code> oder <code>unregelmäßig</code>.</li>' +
         '<li>Tiefe am Tisch: Netz = <b>kurz</b>, Mitte = <b>halblang</b>, Grundlinie = <b>lang</b>.</li></ul>',
+      feedbackTitle: 'Mitmachen & Feedback',
+      fbUse: 'Nutzt du das Tool und hilft es dir? – Gib mir dazu gerne Rückmeldung.',
+      fbBug: 'Hast du einen Fehler gefunden oder vermisst du ein Feature? – Gib mir gerne Rückmeldung.',
+      fbSupport: 'Willst du meine Arbeit unterstützen? – Schau doch unten bei <strong>„Buy me a coffee“</strong> vorbei.',
+      fbDev: 'Bist du Developer:in und willst das Projekt woanders nutzen oder erweitern? – Feel free, unter der <a href="https://github.com/Flocksserver/tt-exercises-vis">MIT-Lizenz</a>.',
+      fbHow: 'Rückmeldung per <a href="mailto:kaufmann@projektionisten.de?subject=TT-Übungsdesign-Visualisierer">Mail</a> oder in den <a href="https://github.com/Flocksserver/tt-exercises-vis/issues">GitHub-Issues</a>.',
       footer: '© <span id="year">2026</span> Marcel Kaufmann · MIT-Lizenz · frei für jeden Zweck nutzbar. <a href="https://github.com/Flocksserver/tt-exercises-vis">Quellcode auf GitHub</a>',
       marker: { frei: 'frei', endlos: '∞ endlos' },
       depth: { kurz: 'kurz', halblang: 'halblang', lang: 'lang' },
@@ -116,6 +122,12 @@
         '<li>Dashed = alternative (<code>or</code>) or feed.</li>' +
         '<li>Shaded area = range (<code>through</code>), <code>whole table</code> or <code>irregular</code>.</li>' +
         '<li>Depth on the table: net = <b>short</b>, middle = <b>half-long</b>, baseline = <b>long</b>.</li></ul>',
+      feedbackTitle: 'Get involved & feedback',
+      fbUse: 'Using the tool and finding it helpful? – I\'d love to hear from you.',
+      fbBug: 'Found a bug or missing a feature? – Let me know.',
+      fbSupport: 'Want to support my work? – Check out <strong>“Buy me a coffee”</strong> below.',
+      fbDev: 'A developer who wants to reuse or extend the project elsewhere? – Feel free, under the <a href="https://github.com/Flocksserver/tt-exercises-vis">MIT licence</a>.',
+      fbHow: 'Reach me by <a href="mailto:kaufmann@projektionisten.de?subject=TT%20Drill%20Designer">email</a> or via <a href="https://github.com/Flocksserver/tt-exercises-vis/issues">GitHub issues</a>.',
       footer: '© <span id="year">2026</span> Marcel Kaufmann · MIT license · free for any use. <a href="https://github.com/Flocksserver/tt-exercises-vis">Source on GitHub</a>',
       marker: { frei: 'free', endlos: '∞ endless' },
       depth: { kurz: 'short', halblang: 'half-long', lang: 'long' },
