@@ -353,9 +353,32 @@
     return segs.filter(function (s) { return s.trim() !== ''; });
   }
 
+  // Zweiwort-Technik „Seite + Schlagart“ (gesprochen/ausgeschrieben) -> Kürzel.
+  // „Vorhand Topspin“ -> VHT, „Rückhand Block“ -> RHB, „Vorhand Konter“ -> VHK,
+  // „Vorhand Schupf“ -> VH-Schupf, „Vorhand Aufschlag“ -> VH-Aufschlag.
+  var STROKE_ABBR = /^(topspin|block|konter|counter|flip|flick|schupf|schub|push|aufschlag|serve)$/i;
+  function strokeSuffix(t) {
+    t = t.toLowerCase();
+    if (/topspin/.test(t)) return 'T';
+    if (/block/.test(t)) return 'B';
+    if (/konter|counter/.test(t)) return 'K';
+    if (/flip|flick/.test(t)) return 'F';
+    if (/schupf|schub|push/.test(t)) return '-Schupf';
+    return '-Aufschlag';   // aufschlag|serve
+  }
+  function joinTechniqueWords(text) {
+    return text.replace(/\b(vorhand|forehand|vh|fh|rückhand|rueckhand|backhand|rh|bh)\s+([A-Za-zäöüß]+)\b/gi, function (m, side, type) {
+      if (!STROKE_ABBR.test(type)) return m;
+      var s = lc(side);
+      var hand = (s === 'vorhand' || s === 'forehand' || s === 'vh' || s === 'fh') ? 'VH' : 'RH';
+      return hand + strokeSuffix(type);
+    });
+  }
+
   // Kleinkram glätten: Aufzählungs-Präfix, „o.“ = oder, abschließende Satzzeichen.
   function normalizeCell(text) {
     text = text.replace(/\s+/g, ' ').trim();
+    text = joinTechniqueWords(text);                       // „Vorhand Topspin“ -> VHT
     text = text.replace(/\s*\/\s*/g, '/');                 // „VHT/ RHT“, „RH / VH“ -> „VHT/RHT“ (PDF-Artefakt)
     text = text.replace(/^([a-zA-Z]\)|\d+[.)])\s+/, '');   // „a) “, „1. “, „2) “
     text = text.replace(/(^|\s)o\.(?=\s|$)/gi, '$1oder');  // „o.“ -> „oder“
