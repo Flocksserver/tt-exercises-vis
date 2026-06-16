@@ -173,6 +173,13 @@
   }
   function marker(kind) { return (DICT[lang].marker || DICT.de.marker)[kind]; }
   function depthWord(d) { return (DICT[lang].depth || DICT.de.depth)[d] || d; }
+  // Technik-Kürzel an die UI-Sprache anpassen (EN: VH->FH, RH->BH, Konter K->Counter C).
+  function tech(t) {
+    if (lang !== 'en' || t == null) return t;
+    return String(t).split('/').map(function (v) {
+      return v.replace(/^VH/, 'FH').replace(/^RH/, 'BH').replace(/^(FH|BH)(.*)K$/, '$1$2C');
+    }).join('/');
+  }
   function aria(key, arg) { return fmt((DICT[lang].aria || DICT.de.aria)[key] || key, arg); }
   function exampleName(i) { var a = DICT[lang].examples; return (a && a[i]) || DICT.de.examples[i]; }
 
@@ -197,7 +204,7 @@
 
   TTV.i18n = {
     get lang() { return lang; },
-    t: t, error: error, marker: marker, depthWord: depthWord, aria: aria, exampleName: exampleName,
+    t: t, error: error, marker: marker, depthWord: depthWord, tech: tech, aria: aria, exampleName: exampleName,
     setLang: setLang, apply: apply
   };
 })(window.TTV = window.TTV || {});
