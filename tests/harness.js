@@ -39,7 +39,7 @@ function loadTTV() {
   ctx.String = String;
   ctx.Date = Date;
   vm.createContext(ctx);
-  ['notation', 'geometry', 'resolver', 'examples', 'renderer'].forEach(function (f) {
+  ['notation', 'geometry', 'resolver', 'replies', 'examples', 'renderer'].forEach(function (f) {
     const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'js', f + '.js'), 'utf8');
     vm.runInContext(code, ctx, { filename: f + '.js' });
   });
