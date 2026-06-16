@@ -356,7 +356,6 @@
   // Zweiwort-Technik „Seite + Schlagart“ (gesprochen/ausgeschrieben) -> Kürzel.
   // „Vorhand Topspin“ -> VHT, „Rückhand Block“ -> RHB, „Vorhand Konter“ -> VHK,
   // „Vorhand Schupf“ -> VH-Schupf, „Vorhand Aufschlag“ -> VH-Aufschlag.
-  var STROKE_ABBR = /^(topspin|block|konter|counter|flip|flick|schupf|schub|push|aufschlag|serve)$/i;
   function strokeSuffix(t) {
     t = t.toLowerCase();
     if (/topspin/.test(t)) return 'T';
@@ -366,9 +365,10 @@
     if (/schupf|schub|push/.test(t)) return '-Schupf';
     return '-Aufschlag';   // aufschlag|serve
   }
+  // Nur „Seite + Schlagart“ matchen (nicht ein beliebiges Folgewort), sonst würde der globale
+  // Regex z. B. „vorhand vorhand“ verschlucken und ein folgendes „vorhand topspin“ übersehen.
   function joinTechniqueWords(text) {
-    return text.replace(/\b(vorhand|forehand|vh|fh|rückhand|rueckhand|backhand|rh|bh)\s+([A-Za-zäöüß]+)\b/gi, function (m, side, type) {
-      if (!STROKE_ABBR.test(type)) return m;
+    return text.replace(/\b(vorhand|forehand|vh|fh|rückhand|rueckhand|backhand|rh|bh)\s+(topspin|block|konter|counter|flip|flick|schupf|schub|push|aufschlag|serve)\b/gi, function (m, side, type) {
       var s = lc(side);
       var hand = (s === 'vorhand' || s === 'forehand' || s === 'vh' || s === 'fh') ? 'VH' : 'RH';
       return hand + strokeSuffix(type);
@@ -630,6 +630,7 @@
   TTV.notation = {
     parseCell: parseCell,
     validateCell: validateCell,
-    labelFor: labelFor
+    labelFor: labelFor,
+    normalize: normalizeCell
   };
 })(window.TTV = window.TTV || {});
