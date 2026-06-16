@@ -14,9 +14,9 @@
 <body>
   <header class="site-header">
     <div class="wrap">
-      <div class="lang-switch">
-        <button type="button" data-lang-btn="de" title="Deutsch">🇩🇪</button>
-        <button type="button" data-lang-btn="en" title="English">🇬🇧</button>
+      <div class="lang-switch" role="group" aria-label="Sprache / Language">
+        <button type="button" data-lang-btn="de" title="Deutsch" aria-label="Auf Deutsch umschalten">🇩🇪</button>
+        <button type="button" data-lang-btn="en" title="English" aria-label="Switch to English">🇬🇧</button>
       </div>
       <h1 data-i18n="title">🏓 Tischtennis-Übungsdesign-Visualisierer</h1>
       <p class="tagline" data-i18n="tagline">Übungen aus einfacher Textnotation als Tisch-Grafik zeichnen – und als PNG oder SVG exportieren.</p>
@@ -34,31 +34,54 @@
         aus dem Ballverlauf abgeleitet. Mit <code>Frei</code> bzw. <code>endlos</code> endet/läuft die Rally.
       </p>
 
-      <div class="examples-bar">
-        <span class="examples-label" data-i18n="examplesLabel">Beispiele:</span>
-        <div id="examples" class="examples"></div>
+      <div class="mode-tabs" role="tablist" id="modeTabs">
+        <button type="button" class="mode-tab active" id="tab-table" role="tab" aria-selected="true" aria-controls="panel-table" data-mode-btn="table" data-i18n="modeTable">Tabelle</button>
+        <button type="button" class="mode-tab" id="tab-sequence" role="tab" aria-selected="false" aria-controls="panel-sequence" tabindex="-1" data-mode-btn="sequence" data-i18n="modeSequence">Sequenz</button>
       </div>
 
-      <div class="table-scroll">
-        <table class="input-table">
-          <thead>
-            <tr>
-              <th class="row-num">#</th>
-              <th data-i18n-html="colA">Spieler A <span class="muted">(vorne)</span></th>
-              <th id="headB">Spieler B <span class="muted">(hinten)</span></th>
-              <th class="row-actions"></th>
-            </tr>
-          </thead>
-          <tbody id="rowsBody"></tbody>
-        </table>
+      <div id="panel-table" role="tabpanel" aria-labelledby="tab-table">
+        <div class="examples-bar">
+          <span class="examples-label" data-i18n="examplesLabel">Beispiele:</span>
+          <div id="examples" class="examples"></div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="input-table">
+            <thead>
+              <tr>
+                <th class="row-num">#</th>
+                <th data-i18n-html="colA">Spieler A <span class="muted">(vorne)</span></th>
+                <th id="headB">Spieler B <span class="muted">(hinten)</span></th>
+                <th class="row-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="rowsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="toolbar">
+          <button type="button" id="addRow" class="btn" data-i18n="addRow">+ Zeile</button>
+          <label class="toggle"><input type="checkbox" id="multiball" /> <span data-i18n="balleimer">Balleimer (Zuspiel)</span></label>
+        </div>
       </div>
 
-      <div class="toolbar">
-        <button type="button" id="addRow" class="btn" data-i18n="addRow">+ Zeile</button>
-        <label class="toggle"><input type="checkbox" id="multiball" /> <span data-i18n="balleimer">Balleimer (Zuspiel)</span></label>
+      <div id="panel-sequence" role="tabpanel" aria-labelledby="tab-sequence" hidden>
+        <p class="muted" data-i18n-html="seqIntro"></p>
+        <label class="seq-field">
+          <span class="seq-label" data-i18n="seqAlabel">Spieler A – Sequenz</span>
+          <textarea id="seqA" class="seq-input" rows="4" autocomplete="off" spellcheck="false" data-i18n-placeholder="seqPlaceholderA"></textarea>
+        </label>
+        <span class="cell-error" id="seqError" aria-live="polite"></span>
+        <label class="seq-field seq-field-b">
+          <span class="seq-label" data-i18n="seqBlabel">Spieler B – optional</span>
+          <textarea id="seqB" class="seq-input" rows="4" autocomplete="off" spellcheck="false" data-i18n-placeholder="seqPlaceholderB"></textarea>
+        </label>
+        <div class="toolbar">
+          <label class="toggle"><input type="checkbox" id="seqMultiball" /> <span data-i18n="balleimer">Balleimer (Zuspiel)</span></label>
+        </div>
       </div>
 
-      <div id="svgContainer" class="svg-container" aria-live="polite"></div>
+      <div id="svgContainer" class="svg-container"></div>
 
       <div class="toolbar toolbar-bottom">
         <button type="button" id="btnReset" class="btn" data-i18n="reset">Zurücksetzen</button>

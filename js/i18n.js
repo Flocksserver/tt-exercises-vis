@@ -16,6 +16,13 @@
       toolTitle: 'Übung erstellen',
       intro: 'Jede Zeile ist ein Ballwechsel-Schritt. <strong>Spieler A</strong> steht vorne, <strong>Spieler B</strong> hinten. Schreibe pro Feld z. B. <code>VHT aus VH in Mitte</code> – das <code>aus …</code> darf entfallen (<code>VHT in RH</code>), der Ursprung wird dann aus dem Ballverlauf abgeleitet. Mit <code>Frei</code> bzw. <code>endlos</code> endet/läuft die Rally.',
       examplesLabel: 'Beispiele:',
+      modeTable: 'Tabelle',
+      modeSequence: 'Sequenz',
+      seqIntro: 'Tippe die Schläge von <strong>Spieler A</strong> als Sequenz – ein Schlag pro Zeile, oder mit <code>-&gt;</code> bzw. Komma getrennt; eine Gruppe wiederholen mit <code>2x …</code>. <strong>Spieler B</strong> wird automatisch ergänzt (Topspin→Block, Konter→Konter, Block→Topspin …) – optional unten überschreibbar.',
+      seqAlabel: 'Spieler A – Sequenz',
+      seqBlabel: 'Spieler B – optional',
+      seqPlaceholderA: 'VHT aus VH diagonal\nVHT aus Mitte in RH\nRHT aus RH in VH',
+      seqPlaceholderB: '(leer = automatische Antwort)',
       colA: 'Spieler A <span class="muted">(vorne)</span>',
       colB: 'Spieler B <span class="muted">(hinten)</span>',
       colZ: 'Zuspieler <span class="muted">(Balleimer)</span>',
@@ -25,6 +32,7 @@
       exportPng: 'PNG exportieren',
       exportSvg: 'SVG exportieren',
       svgEmpty: 'Trage oben eine Übung ein – die Visualisierung erscheint hier.',
+      svgAlt: 'Diagramm der Tischtennis-Übung',
       legendTitle: 'Notation &amp; Legende',
       legBasics: '<h3>Grundmuster</h3>' +
         '<p class="syntax"><code>[N&nbsp;mal] <b>TECHNIK</b> [Richtung] [aus [Tiefe] <b>POS</b>] in [Tiefe] <b>ZIEL</b></code></p>' +
@@ -69,6 +77,13 @@
       toolTitle: 'Create a drill',
       intro: 'Each row is one rally step. <strong>Player A</strong> is at the front, <strong>Player B</strong> at the back. Per field write e.g. <code>FHT from FH to middle</code> – the <code>from …</code> part is optional (<code>FHT to BH</code>); the origin is then inferred from the ball path. <code>free</code> or <code>endless</code> ends/continues the rally.',
       examplesLabel: 'Examples:',
+      modeTable: 'Table',
+      modeSequence: 'Sequence',
+      seqIntro: 'Type <strong>Player A</strong>’s strokes as a sequence – one per line, or separated by <code>-&gt;</code> or a comma; repeat a group with <code>2x …</code>. <strong>Player B</strong> is filled in automatically (topspin→block, counter→counter, block→topspin …) – optionally overridden below.',
+      seqAlabel: 'Player A – sequence',
+      seqBlabel: 'Player B – optional',
+      seqPlaceholderA: 'FHT from FH diagonal\nFHT from middle to BH\nBHT from BH to FH',
+      seqPlaceholderB: '(empty = automatic reply)',
       colA: 'Player A <span class="muted">(front)</span>',
       colB: 'Player B <span class="muted">(back)</span>',
       colZ: 'Feeder <span class="muted">(multiball)</span>',
@@ -78,6 +93,7 @@
       exportPng: 'Export PNG',
       exportSvg: 'Export SVG',
       svgEmpty: 'Enter a drill above – the diagram appears here.',
+      svgAlt: 'Table-tennis drill diagram',
       legendTitle: 'Notation &amp; legend',
       legBasics: '<h3>Basic pattern</h3>' +
         '<p class="syntax"><code>[N&nbsp;times] <b>TECHNIQUE</b> [direction] [from [depth] <b>POS</b>] to [depth] <b>TARGET</b></code></p>' +
@@ -143,6 +159,7 @@
     document.title = t('docTitle');
     [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
     [].forEach.call(document.querySelectorAll('[data-i18n-html]'), function (el) { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-placeholder]'), function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
     [].forEach.call(document.querySelectorAll('[data-lang-btn]'), function (b) {
       b.classList.toggle('active', b.getAttribute('data-lang-btn') === lang);
     });

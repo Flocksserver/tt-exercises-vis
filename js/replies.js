@@ -53,6 +53,7 @@
     else if (/ballonabwehr|lob/.test(low)) family = 'lob';
     else if (/aufschlag|serve/.test(low) || /^(as|us|s[üu]s)$/.test(low)) family = 'aufschlag';
     else if (/r[üu]ckschlag|return/.test(low) || /^rs$/.test(low)) family = 'rueckschlag';
+    else if (/^(vh|fh|rh|bh)$/.test(low)) family = 'topspin';   // bloße Seite = Grundschlag (VH/RH) -> Gegner blockt
     else {
       // … sonst Abbrev-Suffix: VH/RH/FH/BH + T|K|B|F
       var m = low.match(/^(?:vh|fh|rh|bh)([tkbf])$/);

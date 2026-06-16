@@ -17,6 +17,10 @@
     { a: 'BHT from BH to FH', b: 'free' }
   ];
 
+  // Standard-Sequenz = Positions-Beinarbeit, zweimal durchgeführt (-> „×2" automatisch erkannt).
+  var DEFAULT_SEQ = 'VH Mitte RH VH Mitte RH';
+  var DEFAULT_SEQ_EN = 'FH middle BH FH middle BH';
+
   var EXAMPLES = [
     {
       name: 'RH-Konter (endlos)',
@@ -134,5 +138,8 @@
     }
   ];
 
-  TTV.examples = { DEFAULT_ROWS: DEFAULT_ROWS, DEFAULT_ROWS_EN: DEFAULT_ROWS_EN, EXAMPLES: EXAMPLES };
+  TTV.examples = {
+    DEFAULT_ROWS: DEFAULT_ROWS, DEFAULT_ROWS_EN: DEFAULT_ROWS_EN,
+    DEFAULT_SEQ: DEFAULT_SEQ, DEFAULT_SEQ_EN: DEFAULT_SEQ_EN, EXAMPLES: EXAMPLES
+  };
 })(window.TTV = window.TTV || {});
