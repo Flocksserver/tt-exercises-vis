@@ -300,6 +300,12 @@ test('„weit“ = laterale Position (weiter außen), KEINE Tiefe', () => {
   // „tief/tiefe“ ist Synonym für weit (nicht lang!)
   assert.equal(P('VHT in tiefe VH').target.list[0].pos, 'VHweit');
   assert.equal(P('RHB aus tiefer RH in VH').from.pos, 'RHweit');
+  // „über Ecke [raus]“ ist ebenfalls Synonym für weit
+  assert.equal(P('VHT in über Ecke VH').target.list[0].pos, 'VHweit');
+  assert.equal(P('VHT in über Ecke raus RH').target.list[0].pos, 'RHweit');
+  assert.equal(P('RHB aus über Ecke VH in RH').from.pos, 'VHweit');
+  assert.equal(P('VHT über Ecke VH').target.list[0].pos, 'VHweit');   // „über“ als Präposition
+  assert.equal(P('VHT über Ecke raus RH').target.list[0].pos, 'RHweit');
   // „lang“ bleibt Tiefe
   assert.equal(P('VHT in lang VH').target.list[0].depth, 'lang');
   assert.equal(P('VHT in lang VH').target.list[0].pos, 'VH');

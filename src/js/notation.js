@@ -223,6 +223,27 @@
       return null;   // „weit“ ohne Seite ist keine Position
     }
 
+    // „über Ecke [raus] VH/RH“ = Synonym für „weite VH/RH“ (laterale Außen-Position).
+    // Zwei Fälle: „über“ erreicht die Position (nach „in/aus“), oder „über“ war die
+    // Präposition und nur noch „Ecke [raus] Seite“ steht hier.
+    var weitEcke = (function () {
+      var k = i;
+      if (low0 === 'über' || low0 === 'ueber') {                 // „über Ecke …“
+        if (!/^ecken?$/.test(lc(tokens[i + 1]))) return null;
+        k = i + 2;
+      } else if (/^ecken?$/.test(low0)) {                        // „Ecke …“ (über schon als Präp weg)
+        k = i + 1;
+      } else {
+        return null;
+      }
+      if (/^(raus|heraus|außen|aussen)$/.test(lc(tokens[k]))) k++;
+      var es = sideOf(tokens[k]);
+      if (es === 'vh') return { pos: 'VHweit', n: k - i + 1 };
+      if (es === 'rh') return { pos: 'RHweit', n: k - i + 1 };
+      return null;
+    })();
+    if (weitEcke) return weitEcke;
+
     // Bruchzone: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“ -> Zone über den Bruchteil zur Seite hin
     var fr = parseFraction(t0);
     if (fr) {
