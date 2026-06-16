@@ -111,6 +111,7 @@
     if (!groups.length && !endsFree) {
       var cyc = detectCycle(rows);
       if (cyc) groups = [{ start: 0, len: (rows = rows.slice(0, cyc.base)).length, repeat: String(cyc.reps) }];
+      else rows = splitTransitions(rows);   // Wiederholung mit Ursprungswechsel -> Loop + Übergang
     }
     return { rows: rows, groups: groups };
   }
@@ -123,6 +124,33 @@
   }
   function aHand(a) { return a.technik + '|' + (a.from ? a.from.pos : ''); }
   function sameCycleStroke(x, y) { return (x.openEnd || y.openEnd) ? aHand(x) === aHand(y) : aSig(x) === aSig(y); }
+  function originKey(a) { return a.from ? a.from.pos : ''; }
+
+  // Wiederholung mit Ursprungswechsel auflösen: gleiche aufeinanderfolgende Schläge zu einem
+  // „N×"-Loop-Tisch bündeln; wechselt danach der Ursprung, einen Übergangs-Tisch einfügen
+  // (B blockt dort zur nächsten Position statt zur eigenen). Beispiel: „2x aus VH" dann „2x aus
+  // Mitte" -> [2× VH (B→VH)] [Übergang VH→Mitte] [2× Mitte (B→Mitte)].
+  function splitTransitions(rows) {
+    var merged = [];
+    rows.forEach(function (r) {
+      var last = merged[merged.length - 1];
+      if (last && r.a && r.a.type === 'stroke' && last.a && last.a.type === 'stroke' &&
+          !last.a.openEnd && !r.a.openEnd && aSig(r.a) === aSig(last.a)) {
+        last.__n = (last.__n || 1) + 1;
+      } else { if (r.a && r.a.type === 'stroke') r.__n = 1; merged.push(r); }
+    });
+    merged.forEach(function (r) { if (r.__n > 1 && r.a && !r.a.repeat) r.a.repeat = String(r.__n); delete r.__n; });
+    var out = [];
+    for (var i = 0; i < merged.length; i++) {
+      var r = merged[i], nx = merged[i + 1]; out.push(r);
+      var rep = r.a && r.a.type === 'stroke' && r.a.repeat && /^\d+$/.test(String(r.a.repeat)) && +r.a.repeat > 1;
+      if (rep && nx && nx.a && nx.a.type === 'stroke' && originKey(r.a) !== originKey(nx.a)) {
+        var tr = {}; for (var k in r.a) tr[k] = r.a[k]; tr.repeat = null;   // Übergangsball ohne Wiederholung
+        out.push({ a: tr, b: { type: 'empty' } });
+      }
+    }
+    return out;
+  }
   // Kleinste Periode p (mit n/p >= 2 gleichen Blöcken) finden; sonst null.
   function detectCycle(rows) {
     var n = rows.length;

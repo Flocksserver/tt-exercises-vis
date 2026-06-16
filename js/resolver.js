@@ -142,6 +142,9 @@
     // Nach dem letzten Schlag einer wiederholten Gruppe folgt wieder der erste (Loop) ->
     // B spielt dorthin zu. Index -> Index des Zyklus-Starts.
     function nextAfter(idx) {
+      var cur = rows[idx] && rows[idx].a;
+      // wiederholter Einzelschlag (N×) = Loop: B spielt zur EIGENEN Position zurück.
+      if (cur && cur.type === 'stroke' && cur.repeat && /^\d+$/.test(String(cur.repeat)) && +cur.repeat > 1) return cur;
       if (repeatGroups) {
         for (var k = 0; k < repeatGroups.length; k++) {
           var g = repeatGroups[k];
