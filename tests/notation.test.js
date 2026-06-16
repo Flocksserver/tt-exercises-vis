@@ -196,6 +196,18 @@ test('Fehlerfälle', () => {
   assert.equal(P('VHT aus VH').type, 'stroke');          // ohne Ziel/Richtung -> Default diagonal (kein Fehler)
 });
 
+test('Zweiwort-Technik: „Seite + Schlagart“ -> Kürzel', () => {
+  assert.equal(P('Vorhand Topspin aus VH').technik, 'VHT');
+  assert.equal(P('Rückhand Block in RH').technik, 'RHB');
+  assert.equal(P('Vorhand Konter in RH').technik, 'VHK');
+  assert.equal(P('vorhand topspin aus vorhand').technik, 'VHT');
+  assert.equal(P('Rückhand Flip in VH').technik, 'RHF');
+  assert.equal(P('Vorhand Schupf in kurze RH').technik, 'VH-Schupf');
+  assert.equal(P('Vorhand Aufschlag in RH').technik, 'VH-Aufschlag');
+  // „VH Mitte“ ist KEINE Schlagart -> unangetastet (Technik bleibt erkennbar, Mitte = Position)
+  assert.equal(P('VHT aus VH in Mitte').technik, 'VHT');
+});
+
 test('Default: ohne Ziel & Richtung -> diagonal aus Schlaghand', () => {
   // bloße Technik ist gültig (kein noTarget-Fehler mehr)
   const r = P('VHT');
