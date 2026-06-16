@@ -42,6 +42,10 @@
     // Schlaghand aus dem Präfix (VH/FH -> VH, RH/BH -> RH); fehlt bei „Block“, „US-Aufschlag“ …
     var lead = low.slice(0, 2);
     var hand = (lead === 'vh' || lead === 'fh') ? 'VH' : (lead === 'rh' || lead === 'bh') ? 'RH' : null;
+    if (!hand) {   // ausgeschriebene Seite
+      if (/^(vorhand|forehand)$/.test(low)) hand = 'VH';
+      else if (/^(r[üu]ckhand|backhand)$/.test(low)) hand = 'RH';
+    }
 
     // Familie: ausgeschriebene Techniken (im Token enthalten) zuerst …
     var family = null;
@@ -53,7 +57,7 @@
     else if (/ballonabwehr|lob/.test(low)) family = 'lob';
     else if (/aufschlag|serve/.test(low) || /^(as|us|s[üu]s)$/.test(low)) family = 'aufschlag';
     else if (/r[üu]ckschlag|return/.test(low) || /^rs$/.test(low)) family = 'rueckschlag';
-    else if (/^(vh|fh|rh|bh)$/.test(low)) family = 'topspin';   // bloße Seite = Grundschlag (VH/RH) -> Gegner blockt
+    else if (/^(vh|fh|rh|bh|vorhand|forehand|r[üu]ckhand|backhand)$/.test(low)) family = 'topspin';   // bloße Seite = Grundschlag -> Gegner blockt
     else {
       // … sonst Abbrev-Suffix: VH/RH/FH/BH + T|K|B|F
       var m = low.match(/^(?:vh|fh|rh|bh)([tkbf])$/);

@@ -34,6 +34,13 @@ test('classify: Wort-Techniken (Hand meist null)', () => {
   // bloße Seite = Grundschlag (Vorhand/Rückhand) -> topspin-Familie (für Positions-Sequenzen)
   assert.equal(R.classify('VH').family, 'topspin');
   assert.equal(R.classify('RH').family, 'topspin');
+  // ausgeschriebene Seite ebenso (z. B. „vorhand aus vorhand")
+  assert.deepEqual(R.classify('vorhand'), { hand: 'VH', family: 'topspin' });
+  assert.deepEqual(R.classify('rückhand'), { hand: 'RH', family: 'topspin' });
+  assert.deepEqual(R.classify('forehand'), { hand: 'VH', family: 'topspin' });
+  assert.equal(R.classify('backhand').family, 'topspin');
+  // B-Antwort wird dann abgeleitet
+  assert.equal(R.defaultReply('vorhand', 'RH').technik, 'RHB');
 });
 
 test('handForLanding: Mitte -> VH (abgestimmt), RH-Seite -> RH', () => {
