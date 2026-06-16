@@ -221,6 +221,10 @@ test('Bruchzonen: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“', () => {
   // Bruch mit -Seite/Seite-Suffix (docx-Mappen)
   assert.equal(P('Block in 2/3 VH-Seite').target.spec, 'frac:vh:2:3');
   assert.equal(P('VHB in 2/3 VH Seite').target.spec, 'frac:vh:2:3');
+  // Bruch mit Bindestrich an die Seite (ein Token): „2/3-VH", „¾-RH-Tisch"
+  assert.equal(P('VHB in 2/3-VH').target.spec, 'frac:vh:2:3');
+  assert.equal(P('RH-Konter in 2/3-RH').target.spec, 'frac:rh:2:3');
+  assert.equal(P('Block in ¾-RH-Tisch').target.spec, 'frac:rh:3:4');
 });
 
 test('docx-Mappen Synonyme: M/Elle = Mitte, Vorhand/Rückhand, VH-Mitte', () => {

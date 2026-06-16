@@ -245,7 +245,16 @@
     if (weitEcke) return weitEcke;
 
     // Bruchzone: „2/3 VH“, „¾ RH“, „2/3 VH-Tisch“ -> Zone über den Bruchteil zur Seite hin
-    var fr = parseFraction(t0);
+    var fr = parseFraction(t0), gluedSide = null;
+    if (!fr) {                                                          // „2/3-VH“, „¾-RH-Tisch“ (ein Token)
+      var gm = t0.match(/^(.+?)[-–](.+)$/);
+      if (gm) { var gf = parseFraction(gm[1]); if (gf) { fr = gf; gluedSide = gm[2]; } }
+    }
+    if (fr && gluedSide != null) {
+      var gs = sideOf(gluedSide) || sideOf(gluedSide.replace(/[-–](?:tisch|seite|feld|bereich|ecke|h(?:ä|ae)lfte|side|table|area|field|corner)$/i, ''));
+      if (!gs) return null;
+      return { pos: 'frac:' + gs + ':' + fr.num + ':' + fr.den, n: 1 };
+    }
     if (fr) {
       var fj = i + 1;
       if (TISCH[lc(tokens[fj])]) fj++;                                  // „2/3 Tisch VH“
