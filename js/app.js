@@ -421,10 +421,16 @@
       dom.voiceRow.hidden = false;
       dom.btnVoice.addEventListener('click', function () {
         TTV.voice.toggle(isEn() ? 'en' : 'de', {
-          onStatus: function (state) {
-            var k = { loading: 'voiceLoading', listening: 'voiceListening', transcribing: 'voiceTranscribing', error: 'voiceError' }[state];
-            dom.voiceStatus.textContent = k ? T(k) : '';
-            dom.btnVoice.classList.toggle('recording', state === 'listening');
+          onStatus: function (state, info) {
+            if (state === 'loading') {
+              dom.voiceStatus.textContent = T('voiceLoading') + (typeof info === 'number' ? ' ' + info + ' %' : '');
+            } else if (state === 'ready') {
+              dom.voiceStatus.textContent = TTV.voice.isRecording() ? T('voiceListening') : '';
+            } else {
+              var k = { listening: 'voiceListening', transcribing: 'voiceTranscribing', error: 'voiceError' }[state];
+              dom.voiceStatus.textContent = k ? T(k) : '';
+            }
+            dom.btnVoice.classList.toggle('recording', TTV.voice.isRecording());
           },
           onResult: function (text) {
             if (!text) return;

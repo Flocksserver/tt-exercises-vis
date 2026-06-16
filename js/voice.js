@@ -89,12 +89,26 @@
   // transformers.js + Modell-Pipeline (einmalig, gecacht). Lädt vom CDN.
   function ensurePipeline(onStatus) {
     if (transcriberP) return transcriberP;
-    if (onStatus) onStatus('loading');
+    if (onStatus) onStatus('loading', 0);
+    // Aggregierter Download-Fortschritt über alle Modell-Dateien (zuverlässig in %).
+    var files = {};
+    function report() {
+      var loaded = 0, total = 0;
+      for (var f in files) if (files[f].total) { loaded += files[f].loaded; total += files[f].total; }
+      if (total && onStatus) onStatus('loading', Math.min(100, Math.round(loaded / total * 100)));
+    }
+    function onProgress(e) {
+      if (!e || !e.file) return;
+      if (e.status === 'progress') { files[e.file] = { loaded: e.loaded || 0, total: e.total || 0 }; report(); }
+      else if (e.status === 'done' && files[e.file]) { files[e.file].loaded = files[e.file].total; report(); }
+    }
     transcriberP = (async function () {
       var mod = await import(/* @vite-ignore */ CDN);
       try { mod.env.allowLocalModels = false; } catch (e) { /* ignore */ }
       var device = navigator.gpu ? 'webgpu' : 'wasm';
-      return await mod.pipeline('automatic-speech-recognition', MODEL, { device: device, dtype: 'q8' });
+      var p = await mod.pipeline('automatic-speech-recognition', MODEL, { device: device, dtype: 'q8', progress_callback: onProgress });
+      if (onStatus) onStatus('ready');   // Modell bereit -> Status wieder freigeben
+      return p;
     })().catch(function (e) { transcriberP = null; throw e; });
     return transcriberP;
   }
