@@ -56,6 +56,7 @@
         '<li>Schattierte Fläche = Bereich (<code>bis</code>), <code>ganzer Tisch</code> oder <code>unregelmäßig</code>.</li>' +
         '<li>Tiefe am Tisch: Netz = <b>kurz</b>, Mitte = <b>halblang</b>, Grundlinie = <b>lang</b>.</li></ul>',
       voiceBtn: 'Diktieren',
+      voiceExp: 'experimentell',
       voiceLoading: 'Sprachmodell lädt…',
       voiceListening: 'Höre zu… (Klick zum Stoppen)',
       voiceTranscribing: 'Erkenne…',
@@ -128,6 +129,7 @@
         '<li>Shaded area = range (<code>through</code>), <code>whole table</code> or <code>irregular</code>.</li>' +
         '<li>Depth on the table: net = <b>short</b>, middle = <b>half-long</b>, baseline = <b>long</b>.</li></ul>',
       voiceBtn: 'Dictate',
+      voiceExp: 'experimental',
       voiceLoading: 'Loading speech model…',
       voiceListening: 'Listening… (click to stop)',
       voiceTranscribing: 'Transcribing…',

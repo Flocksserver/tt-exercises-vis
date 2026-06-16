@@ -19,7 +19,7 @@ Kein Account, keine Installation, kein Build — eine einzige statische Seite, k
 - **Zwei Eingabearten.** Eine **Tabelle** (ein Ballwechsel-Schritt je Zeile) oder eine freie
   **Sequenz** — die Schläge von Spieler A tippen (eine je Zeile, oder mit `->` / Komma getrennt),
   Spieler B wird automatisch ergänzt.
-- **Spracheingabe (on‑device).** Spieler-A-Sequenz per Mikrofon diktieren — die Erkennung läuft
+- **Spracheingabe (on‑device, experimentell).** Spieler-A-Sequenz per Mikrofon diktieren — die Erkennung läuft
   **lokal im Browser** (Vosk via WebAssembly, auf das Übungs-Vokabular beschränkt), keine Cloud,
   kein API-Key. Optional; das Modell lädt beim ersten Klick und funktioniert danach offline.
 - **Versteht echte Coaching-Kurzform.** Das `aus …` (Ursprung) darf entfallen — der Ursprung wird
