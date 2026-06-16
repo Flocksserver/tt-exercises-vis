@@ -47,6 +47,45 @@
     return t.replace(/\s+/g, ' ').trim();
   }
 
+  // Geschlossenes Sprach-Vokabular: jedes erkannte Wort wird an das nächste erlaubte Wort
+  // „eingerastet" (Whisper-Murks wie „Vorderhand mitter rück hand" -> „vorhand mitte rückhand"),
+  // Füllwörter fallen weg. Das hebt die nutzbare Genauigkeit bei festem Wortschatz stark.
+  var VOCAB = ('vorhand vh rückhand rueckhand rh mitte fh bh forehand backhand middle mid ' +
+    'weit weite tief tiefe über ecke links rechts diagonal parallel kurz halblang lang ' +
+    'aus in oder dann danach then frei free endlos endless ' +
+    'zwei drei vier fünf fuenf sechs sieben acht mal two three four five six ' +
+    'topspin block schupf konter flip aufschlag').split(' ');
+  var ALIAS = {
+    vorderhand: 'vorhand', vorder: 'vorhand', 'für hand': 'vorhand',
+    rück: 'rückhand', rueck: 'rückhand', rückhand: 'rückhand',
+    mittel: 'mitte', mitter: 'mitte', mitt: 'mitte', mide: 'mitte',
+    übereck: 'über ecke', eck: 'ecke'
+  };
+  function lev(a, b) {
+    var m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+    var prev = [], cur = [], i, j; for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1));
+      var tmp = prev; prev = cur; cur = tmp;
+    }
+    return prev[n];
+  }
+  function snap(text) {
+    var toks = String(text == null ? '' : text).toLowerCase().split(/\s+/), out = [];
+    for (var k = 0; k < toks.length; k++) {
+      var w = toks[k].replace(/[^a-zäöüß0-9]/g, '');
+      if (!w) continue;
+      if (/^\d+$/.test(w)) { out.push(w); continue; }            // Ziffern behalten
+      if (ALIAS[w]) { out.push(ALIAS[w]); continue; }
+      var best = null, bd = 99;
+      for (var i = 0; i < VOCAB.length; i++) { var d = lev(w, VOCAB[i]); if (d < bd) { bd = d; best = VOCAB[i]; } }
+      var max = Math.max(1, Math.floor(w.length / 3));
+      if (best && bd <= max) out.push(best);                     // einrasten; sonst Füllwort verwerfen
+    }
+    return out.join(' ');
+  }
+
   // transformers.js + Modell-Pipeline (einmalig, gecacht). Lädt vom CDN.
   function ensurePipeline(onStatus) {
     if (transcriberP) return transcriberP;
@@ -64,7 +103,8 @@
     if (recording) return;
     cb = opts || {}; chunks = [];
     ensurePipeline(cb.onStatus);   // Modell schon mal laden, während aufgenommen wird
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+    var constraints = { audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+    navigator.mediaDevices.getUserMedia(constraints).then(function (s) {
       stream = s; rec = new MediaRecorder(s); recording = true;
       rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
       rec.onstop = function () { transcribe(lang); };
@@ -87,13 +127,22 @@
       var blob = new Blob(chunks, { type: (rec && rec.mimeType) || 'audio/webm' });
       var buf = await blob.arrayBuffer();
       var AC = window.AudioContext || window.webkitAudioContext;
-      var ctx = new AC({ sampleRate: 16000 });
-      var audio = await ctx.decodeAudioData(buf);
-      var pcm = audio.getChannelData(0);          // Mono, ~16 kHz
-      if (ctx.close) ctx.close();
+      var ac = new AC();
+      var decoded = await ac.decodeAudioData(buf);
+      if (ac.close) ac.close();
+      // sauber auf 16 kHz Mono resamplen (robuster als decodeAudioData mit fixer Rate).
+      var pcm;
+      var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (OAC && decoded.sampleRate !== 16000) {
+        var off = new OAC(1, Math.max(1, Math.ceil(decoded.duration * 16000)), 16000);
+        var src = off.createBufferSource(); src.buffer = decoded; src.connect(off.destination); src.start();
+        pcm = (await off.startRendering()).getChannelData(0);
+      } else {
+        pcm = decoded.getChannelData(0);
+      }
       var tr = await ensurePipeline(cb.onStatus);
       var out = await tr(pcm, { language: lang === 'en' ? 'english' : 'german', task: 'transcribe' });
-      var text = normalize((out && out.text) || '');
+      var text = normalize(snap((out && out.text) || ''));   // erst an erlaubte Wörter einrasten
       if (cb.onStatus) cb.onStatus('done');
       if (cb.onResult) cb.onResult(text);
     } catch (e) {
@@ -101,5 +150,5 @@
     }
   }
 
-  TTV.voice = { isSupported: isSupported, isRecording: isRecording, normalize: normalize, toggle: toggle, start: start, stop: stop };
+  TTV.voice = { isSupported: isSupported, isRecording: isRecording, normalize: normalize, snap: snap, toggle: toggle, start: start, stop: stop };
 })(window.TTV = window.TTV || {});
