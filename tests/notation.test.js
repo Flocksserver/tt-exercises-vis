@@ -312,6 +312,14 @@ test('„weit“ = laterale Position (weiter außen), KEINE Tiefe', () => {
   assert.equal(oc.overCorner, true);
   assert.equal(oc.direction, 'diagonal');
   assert.equal(oc.target, null);
+  // auch ohne „über“: „in ecke“, „in eine Ecke“ -> over-corner-Modifier
+  assert.equal(P('VHT aus VH in ecke').overCorner, true);
+  assert.equal(P('VHT aus VH in ecke').type, 'stroke');
+  assert.equal(P('VHT aus VH in eine Ecke').overCorner, true);
+  assert.equal(P('VHT über die Ecke').overCorner, true);
+  // Guards: „VH Ecke“ bleibt VH-Punkt, „Ecke VH“ bleibt VHweit
+  assert.equal(P('VHT auf VH Ecke').target.list[0].pos, 'VH');
+  assert.equal(P('VHT in Ecke VH').target.list[0].pos, 'VHweit');
   // „lang“ bleibt Tiefe
   assert.equal(P('VHT in lang VH').target.list[0].depth, 'lang');
   assert.equal(P('VHT in lang VH').target.list[0].pos, 'VH');

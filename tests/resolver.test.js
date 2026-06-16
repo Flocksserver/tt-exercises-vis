@@ -43,6 +43,9 @@ test('„über Ecke“ ohne Seite -> diagonal an die Außenkante (weit)', () => 
   assert.equal(s0(seq([['VHT aus VH über ecke', '']])[0].a).arrows[0].to.pos, 'VHweit');
   // aus RH -> diagonal -> RHweit
   assert.equal(s0(seq([['RHT aus RH über Ecke raus', '']])[0].a).arrows[0].to.pos, 'RHweit');
+  // ohne „über“: „in ecke“ / „in eine Ecke“ ebenfalls -> weit diagonal
+  assert.equal(s0(seq([['VHT aus VH in ecke', '']])[0].a).arrows[0].to.pos, 'VHweit');
+  assert.equal(s0(seq([['RHT aus RH in eine Ecke', '']])[0].a).arrows[0].to.pos, 'RHweit');
 });
 
 test('Bruchzone wird zu Anteil-Band (lx)', () => {
