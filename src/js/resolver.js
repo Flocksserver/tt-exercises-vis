@@ -30,6 +30,9 @@
     var parallel = { VH: 'RH', RH: 'VH', VHweit: 'RHweit', RHweit: 'VHweit', MitteVH: 'MitteRH', MitteRH: 'MitteVH', Ellbogen: 'MitteVH', Mitte: 'Mitte' };
     return parallel[pos] || pos;                    // parallel (längs)
   }
+  // „über Ecke“ (overCorner): abgeleitetes Ziel an die Außenkante ziehen.
+  function weitOf(pos) { return pos === 'VH' ? 'VHweit' : pos === 'RH' ? 'RHweit' : pos; }
+  function aim(fromPos, dir, over) { var p = deriveTarget(fromPos, dir); return over ? weitOf(p) : p; }
 
   // Ursprünge eines Schlags: explizit „aus …" (+ oder-Alternativen) > Ballort > Schlaghand.
   function buildFroms(parsed, incoming) {
@@ -63,10 +66,10 @@
     } else if (parsed.directions && parsed.directions.length) {
       // Richtung(en) leiten das Ziel ab; „diagonal oder parallel“ -> mehrere Pfeile
       arrows = parsed.directions.map(function (d) {
-        return { to: { pos: deriveTarget(froms[0].pos, d), depth: parsed.strokeDepth || 'lang' }, dashed: false };
+        return { to: { pos: aim(froms[0].pos, d, parsed.overCorner), depth: parsed.strokeDepth || 'lang' }, dashed: false };
       });
     } else if (parsed.direction) {
-      arrows = [{ to: { pos: deriveTarget(froms[0].pos, parsed.direction), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
+      arrows = [{ to: { pos: aim(froms[0].pos, parsed.direction, parsed.overCorner), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
     }
     if (parsed.regular === 'unregelmaessig') {
       variable = true;
@@ -74,7 +77,7 @@
     }
     // Default: kein Ziel & keine Richtung -> diagonal aus dem Ursprung (Schlaghand/Ballverlauf).
     if (!arrows.length && !zone && parsed.regular !== 'unregelmaessig' && !parsed.openEnd) {
-      arrows = [{ to: { pos: deriveTarget(froms[0].pos, 'diagonal'), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
+      arrows = [{ to: { pos: aim(froms[0].pos, 'diagonal', parsed.overCorner), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
     }
     var multiFrom = froms.length > 1;
     var dashAll = forceDashed || multiFrom || arrows.length > 1;

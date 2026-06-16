@@ -306,6 +306,12 @@ test('„weit“ = laterale Position (weiter außen), KEINE Tiefe', () => {
   assert.equal(P('RHB aus über Ecke VH in RH').from.pos, 'VHweit');
   assert.equal(P('VHT über Ecke VH').target.list[0].pos, 'VHweit');   // „über“ als Präposition
   assert.equal(P('VHT über Ecke raus RH').target.list[0].pos, 'RHweit');
+  // „über Ecke“ OHNE Seite: gültig, Default-Diagonal -> weit auf der abgeleiteten Seite
+  var oc = P('VHT aus VH über ecke');
+  assert.equal(oc.type, 'stroke');
+  assert.equal(oc.overCorner, true);
+  assert.equal(oc.direction, 'diagonal');
+  assert.equal(oc.target, null);
   // „lang“ bleibt Tiefe
   assert.equal(P('VHT in lang VH').target.list[0].depth, 'lang');
   assert.equal(P('VHT in lang VH').target.list[0].pos, 'VH');

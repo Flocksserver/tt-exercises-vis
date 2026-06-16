@@ -38,6 +38,13 @@ test('Default diagonal: bloße Technik -> diagonal aus Schlaghand', () => {
   assert.equal(s0(seq([['VHT aus Mitte frei', '']])[0].a).arrows.length, 0);
 });
 
+test('„über Ecke“ ohne Seite -> diagonal an die Außenkante (weit)', () => {
+  // VHT aus VH über ecke == VHT aus VH in weite VH
+  assert.equal(s0(seq([['VHT aus VH über ecke', '']])[0].a).arrows[0].to.pos, 'VHweit');
+  // aus RH -> diagonal -> RHweit
+  assert.equal(s0(seq([['RHT aus RH über Ecke raus', '']])[0].a).arrows[0].to.pos, 'RHweit');
+});
+
 test('Bruchzone wird zu Anteil-Band (lx)', () => {
   // 2/3 VH: lx von 1/3 bis 1 (Sicht A)
   const z = s0(seq([['Block in 2/3 VH', '']])[0].a).zone;

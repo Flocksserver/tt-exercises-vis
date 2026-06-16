@@ -383,7 +383,7 @@
     // führende Zahl ohne „mal“ (z. B. „1-2 VHB“, „0-1 RHT“, „2+ VHT“)
     text = text.replace(/^\s*(\d+(?:-\d+)?\+?)\s+(?=\S)/, function (_, n) { repeat = repeat || n; return ''; });
 
-    var coreTokens = [], directions = [];
+    var coreTokens = [], directions = [], overCorner = false;
     var toks = text.trim().split(/\s+/);
     for (var p = 0; p < toks.length; p++) {
       var tok = toks[p];
@@ -396,6 +396,18 @@
           directions.push(directionOf(toks[p + 2])); p += 2;
         }
         continue;
+      }
+      // „über Ecke [raus]“ OHNE folgende Seite = Modifier: diagonal + weit (über die Ecke).
+      // Mit Seite (z. B. „über Ecke VH“) bleibt es eine Position -> nicht hier strippen.
+      if ((lc(tok) === 'über' || lc(tok) === 'ueber') && /^ecken?$/.test(lc(toks[p + 1]))) {
+        var q = p + 2;
+        if (/^(raus|heraus|außen|aussen)$/.test(lc(toks[q]))) q++;
+        if (!sideOf(toks[q])) {
+          overCorner = true;
+          if (!directions.length) directions.push('diagonal');
+          p = q - 1;
+          continue;
+        }
       }
       var r = regularOf(tok);
       if (r) { regular = r; continue; }
@@ -530,7 +542,8 @@
       from: from,
       fromAlts: fromAlts.length ? fromAlts : null,
       target: target,
-      openEnd: openEnd
+      openEnd: openEnd,
+      overCorner: overCorner
     };
   }
 
