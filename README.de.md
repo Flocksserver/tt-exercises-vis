@@ -20,8 +20,8 @@ Kein Account, keine Installation, kein Build — eine einzige statische Seite, k
   **Sequenz** — die Schläge von Spieler A tippen (eine je Zeile, oder mit `->` / Komma getrennt),
   Spieler B wird automatisch ergänzt.
 - **Spracheingabe (on‑device).** Spieler-A-Sequenz per Mikrofon diktieren — die Erkennung läuft
-  **lokal im Browser** (Whisper via WASM/WebGPU), keine Cloud, kein API-Key. Optional; das Modell
-  lädt beim ersten Klick und funktioniert danach offline.
+  **lokal im Browser** (Vosk via WebAssembly, auf das Übungs-Vokabular beschränkt), keine Cloud,
+  kein API-Key. Optional; das Modell lädt beim ersten Klick und funktioniert danach offline.
 - **Versteht echte Coaching-Kurzform.** Das `aus …` (Ursprung) darf entfallen — der Ursprung wird
   aus der **Ballverlauf-Kette** (letzter Landepunkt) bzw. der Schlaghand abgeleitet.
 - **Reiche Notation:** Richtungen (`diagonal` / `parallel`), Tiefen (`kurz` / `halblang` / `lang`),

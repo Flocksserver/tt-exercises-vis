@@ -19,8 +19,8 @@ No accounts, no install, no build step — a single static page that runs entire
 - **Two input modes.** A **table** (one rally step per row) or a free **sequence** — type Player A’s
   strokes (one per line, or separated by `->` / comma) and Player B is filled in automatically.
 - **Voice input (on‑device).** Dictate Player A’s sequence with the microphone — speech recognition
-  runs **locally in your browser** (Whisper via WASM/WebGPU), no cloud, no API key. Optional; the
-  model loads on first use, then works offline.
+  runs **locally in your browser** (Vosk via WebAssembly, constrained to the drill vocabulary), no
+  cloud, no API key. Optional; the model loads on first use, then works offline.
 - **Understands real coaching shorthand.** The `from …` (origin) may be omitted — the origin is
   inferred from the **rally chain** (where the previous ball landed) or the stroke’s hand.
 - **Rich notation:** directions (`diagonal` / `parallel`), depths (`short` / `half-long` / `long`),
