@@ -13,6 +13,18 @@ function render(rows, opts) {
   return TTV.renderer.render(resolved, opts || {});
 }
 
+test('Wiederhol-Gruppe: „×N"-Klammer + höheres SVG (Band)', () => {
+  const resolved = R([
+    { a: P('VHT aus VH in VH'), b: { type: 'empty' } },
+    { a: P('VHT aus Mitte in VH'), b: { type: 'empty' } },
+    { a: P('RHT aus RH in RH'), b: { type: 'empty' } }
+  ], { inferReplies: true });
+  const base = TTV.renderer.render(resolved, {});
+  const badged = TTV.renderer.render(resolved, { repeatGroups: [{ start: 0, len: 3, repeat: '2' }] });
+  assert.ok(H.texts(badged).indexOf('×2') >= 0, '×2-Label vorhanden');
+  assert.ok(parseInt(badged.getAttribute('height'), 10) > parseInt(base.getAttribute('height'), 10), 'Band erhöht die SVG-Höhe');
+});
+
 test('RH-Konter: eine Doppellinie, keine Einzelpfeile, solide', () => {
   const svg = render([['RHK aus RH in RH', 'RHK aus RH in RH']]);
   assert.equal(H.doubleArrows(svg).length, 1);

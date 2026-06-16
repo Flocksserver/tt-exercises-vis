@@ -31,6 +31,9 @@ test('classify: Wort-Techniken (Hand meist null)', () => {
   assert.equal(R.classify('Ballonabwehr').family, 'lob');
   // unbekannt
   assert.equal(R.classify('Bagatelle').family, null);
+  // bloße Seite = Grundschlag (Vorhand/Rückhand) -> topspin-Familie (für Positions-Sequenzen)
+  assert.equal(R.classify('VH').family, 'topspin');
+  assert.equal(R.classify('RH').family, 'topspin');
 });
 
 test('handForLanding: Mitte -> VH (abgestimmt), RH-Seite -> RH', () => {

@@ -79,10 +79,17 @@
     if (!arrows.length && !zone && parsed.regular !== 'unregelmaessig' && !parsed.openEnd) {
       arrows = [{ to: { pos: aim(froms[0].pos, 'diagonal', parsed.overCorner), depth: parsed.strokeDepth || 'lang' }, dashed: false }];
     }
+    // „frei" (openEnd) = freie Platzierung -> variables Band über die ganze Gegnerseite,
+    // und der Ballwechsel endet hier (kein Folgeball, keine B-Antwort).
+    if (parsed.openEnd && !arrows.length && !zone) {
+      variable = true;
+      zone = { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } };
+    }
     var multiFrom = froms.length > 1;
     var dashAll = forceDashed || multiFrom || arrows.length > 1;
     arrows = arrows.map(function (a) { return { to: a.to, dashed: dashAll || a.dashed }; });
-    var primary = arrows.length ? arrows[0].to : (zone ? { pos: 'Mitte', depth: zone.from.depth || 'lang' } : null);
+    var primary = parsed.openEnd ? null
+      : (arrows.length ? arrows[0].to : (zone ? { pos: 'Mitte', depth: zone.from.depth || 'lang' } : null));
     var variableTarget = !!zone || arrows.length > 1 || multiFrom || forceDashed || parsed.regular === 'unregelmaessig';
     return {
       shot: { label: TTV.notation.labelFor(parsed), from: froms[0], froms: froms, arrows: arrows, zone: zone, variable: variable, zoneDashed: forceDashed || multiFrom },
@@ -90,7 +97,59 @@
     };
   }
 
-  function run(rows) {
+  // Technik-Token einer (geparsten) Zelle (für die Default-Antwort-Ableitung).
+  function techOf(cell) {
+    if (!cell) return null;
+    if (cell.type === 'stroke') return cell.technik;
+    if (cell.type === 'alternatives' && cell.variants[0]) return cell.variants[0].technik;
+    return null;
+  }
+  function isEmptyCell(cell) { return !cell || cell.type === 'empty'; }
+  // Ursprungs-Position einer (geparsten) A-Zelle (für B's Zuspiel-Ziel).
+  function originOf(cell) {
+    var v = (cell && cell.type === 'stroke') ? cell : (cell && cell.type === 'alternatives' ? cell.variants[0] : null);
+    if (!v) return null;
+    return v.from ? v.from.pos : (handOf(v.technik) || null);
+  }
+  // Default-Antwort (TTV.replies) als vollwertige Schlag-Zelle. B's Ursprung = A's Landepunkt
+  // (aus dem Ballverlauf); B's ZIEL = A's nächste Position (targetPos), damit der Ballweg
+  // zusammenpasst – fehlt die nächste Position, leitet die Default-Diagonale das Ziel ab.
+  function replyCell(rep, targetPos) {
+    var target = targetPos ? { kind: 'positions', list: [{ pos: targetPos, depth: 'lang' }], range: null } : null;
+    return {
+      type: 'stroke', technik: rep.technik, repeat: null, direction: null, directions: [],
+      regular: null, strokeDepth: null, from: null, fromAlts: null, target: target,
+      openEnd: false, overCorner: false
+    };
+  }
+
+  function freiWord() { return (TTV.i18n && TTV.i18n.marker) ? TTV.i18n.marker('frei') : 'frei'; }
+  // Freier Ball von Spieler A: aus der gespielten Seite über den GANZEN Tisch, Label „frei".
+  function freeBandShot(player, fromPos) {
+    var from = { pos: fromPos || 'Mitte', depth: 'lang' };
+    return {
+      kind: 'stroke', player: player, shots: [{
+        label: freiWord(), from: from, froms: [from], arrows: [],
+        zone: { from: { pos: 'VH', depth: 'lang' }, to: { pos: 'RH', depth: 'lang' } },
+        variable: true, zoneDashed: false
+      }]
+    };
+  }
+
+  function run(rows, opts) {
+    var inferReplies = !!(opts && opts.inferReplies);
+    var repeatGroups = (opts && opts.repeatGroups) || null;
+    // Nach dem letzten Schlag einer wiederholten Gruppe folgt wieder der erste (Loop) ->
+    // B spielt dorthin zu. Index -> Index des Zyklus-Starts.
+    function nextAfter(idx) {
+      if (repeatGroups) {
+        for (var k = 0; k < repeatGroups.length; k++) {
+          var g = repeatGroups[k];
+          if (+g.repeat > 1 && idx === g.start + g.len - 1) return rows[g.start] && rows[g.start].a;
+        }
+      }
+      return rows[idx + 1] && rows[idx + 1].a;
+    }
     // ball[seite] = null (kein Ball) oder { pos, depth, variable }
     var ball = { A: null, B: null };
     var issues = [];
@@ -98,7 +157,11 @@
     function resolveShot(parsed, player, rowIdx) {
       if (!parsed || parsed.type === 'empty') return null;
       if (parsed.type === 'frei' || parsed.type === 'endlos') {
+        var incFree = ball[player];
         ball.A = null; ball.B = null;   // Rally-Grenze: Ball unbestimmt
+        // „frei" bei Spieler A = freier Ball: aus der gespielten Seite über den ganzen Tisch.
+        // (Spieler B bzw. „endlos" bleiben ein Text-Marker.)
+        if (parsed.type === 'frei' && player === 'A') return freeBandShot(player, incFree && incFree.pos);
         return { kind: parsed.type, player: player };
       }
       var variants, isAlt;
@@ -116,6 +179,8 @@
           issues.push({ row: rowIdx, player: player, technik: pv.technik, expected: incoming.pos, got: pv.from.pos });
         }
         var b = buildShot(pv, incoming, isAlt);
+        // Abschließendes „frei" an A's Schlag (offener Ball) -> als „frei" labeln (Band = ganzer Tisch).
+        if (player === 'A' && pv.openEnd) b.shot.label = freiWord();
         shots.push(b.shot);
         if (vi === 0) primary = b.primary;
         if (b.variableTarget) variableAfter = true;
@@ -130,14 +195,24 @@
     var resolved = rows.map(function (row, idx) {
       // Reihenfolge A -> B: A's Ziel ist B's Ursprung in derselben Reihe.
       var a = resolveShot(row.a, 'A', idx);
-      var b = resolveShot(row.b, 'B', idx);
+      // Sequenz-Modus: fehlt B, wird die Default-Antwort abgeleitet (Technik aus TTV.replies;
+      // Annahme-Position = A's Landepunkt = ball.B, Richtung = Default-Diagonale).
+      var bCell = row.b;
+      if (inferReplies && TTV.replies && isEmptyCell(bCell) && a && a.kind === 'stroke') {
+        var landing = ball.B, aTech = techOf(row.a);
+        var rep = (landing && aTech) ? TTV.replies.defaultReply(aTech, landing.pos) : null;
+        // B spielt zur NÄCHSTEN A-Position zu (damit der Ballweg zusammenpasst);
+        // am Ende einer wiederholten Gruppe wieder zum Zyklus-Start.
+        if (rep) bCell = replyCell(rep, originOf(nextAfter(idx)));
+      }
+      var b = resolveShot(bCell, 'B', idx);
       return { a: a, b: b };
     });
     return { rows: resolved, issues: issues };
   }
 
-  function resolveSequence(rows) { return run(rows).rows; }
-  function resolveWithIssues(rows) { return run(rows); }
+  function resolveSequence(rows, opts) { return run(rows, opts).rows; }
+  function resolveWithIssues(rows, opts) { return run(rows, opts); }
   // Logische Plausibilität der Sequenz: explizite Ursprünge, die nicht zum Ballort passen.
   function findOriginIssues(rows) { return run(rows).issues; }
 

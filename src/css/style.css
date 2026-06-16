@@ -45,11 +45,16 @@ body {
   opacity: .65;
   transition: opacity .12s, background .12s, border-color .12s;
 }
+.lang-switch button {
+  display: inline-flex; align-items: center; justify-content: center;   /* Flagge mittig */
+  min-width: 30px; min-height: 26px;
+}
 .lang-switch button:hover { opacity: 1; }
 .lang-switch button.active { opacity: 1; background: rgba(255, 255, 255, .9); border-color: #fff; }
 @media (max-width: 560px) { .lang-switch { top: 8px; right: 12px; } }
-.site-header h1 { margin: 0 0 6px; font-size: clamp(1.5rem, 3.5vw, 2.2rem); }
-.tagline { margin: 0; opacity: .92; font-size: 1.02rem; max-width: 60ch; }
+/* text-shadow sichert den Kontrast des weißen Texts über dem hellen (amber) Verlaufsende */
+.site-header h1 { margin: 0 0 6px; font-size: clamp(1.5rem, 3.5vw, 2.2rem); text-shadow: 0 1px 3px rgba(0,0,0,.32); }
+.tagline { margin: 0; font-size: 1.02rem; max-width: 60ch; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
 
 /* Cards */
 main { padding: 26px 0 60px; }
@@ -133,6 +138,34 @@ code {
   margin-top: 4px;
   min-height: 0;
   overflow-wrap: anywhere;   /* lange Tokens umbrechen statt Zelle sprengen */
+}
+
+/* Modus-Tabs (Tabelle / Sequenz) */
+.mode-tabs { display: flex; gap: 6px; margin: 6px 0 16px; border-bottom: 1px solid var(--line); }
+.mode-tab {
+  border: none; background: none; padding: 8px 14px; font-size: .95rem; cursor: pointer;
+  color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.mode-tab:hover { color: var(--ink); }
+.mode-tab.active { color: var(--green-dark); border-bottom-color: var(--green); font-weight: 600; }
+
+/* Sequenz-Eingabe */
+.seq-field { display: block; margin: 10px 0; }
+.seq-label { display: block; font-size: .9rem; color: var(--ink); margin-bottom: 4px; }
+.seq-input {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 8px; font-family: inherit; font-size: .95rem; resize: vertical; line-height: 1.5;
+}
+.seq-input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(10,125,60,.15); }
+/* Balleimer im Sequenz-Modus: Spieler-B-Feld ausblenden (B fällt weg) */
+#panel-sequence.hide-b .seq-field-b { display: none; }
+
+/* A11y: Formularfeld-Rahmen mit ≥3:1 Kontrast (WCAG 1.4.11) */
+.cell-input, .seq-input { border-color: #79808a; }
+/* A11y: deutlich sichtbarer Tastatur-Fokus auf allen Bedienelementen (WCAG 2.4.7) */
+.btn:focus-visible, .btn-chip:focus-visible, .btn-icon:focus-visible,
+.mode-tab:focus-visible, [data-lang-btn]:focus-visible {
+  outline: 2px solid var(--green-dark); outline-offset: 2px; border-radius: 6px;
 }
 
 /* Buttons / toolbar */

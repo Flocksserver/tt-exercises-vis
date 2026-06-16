@@ -16,19 +16,22 @@ Kein Account, keine Installation, kein Build — eine einzige statische Seite, k
 ## Highlights
 
 - **Text → Grafik, live.** Notation tippen, die Tisch-Ansicht aktualisiert sich sofort.
+- **Zwei Eingabearten.** Eine **Tabelle** (ein Ballwechsel-Schritt je Zeile) oder eine freie
+  **Sequenz** — die Schläge von Spieler A tippen (eine je Zeile, oder mit `->` / Komma getrennt),
+  Spieler B wird automatisch ergänzt.
 - **Versteht echte Coaching-Kurzform.** Das `aus …` (Ursprung) darf entfallen — der Ursprung wird
   aus der **Ballverlauf-Kette** (letzter Landepunkt) bzw. der Schlaghand abgeleitet.
 - **Reiche Notation:** Richtungen (`diagonal` / `parallel`), Tiefen (`kurz` / `halblang` / `lang`),
   Zonen (`ganzer Tisch`, `halber Tisch RH`, `Mitte VH`), Wiederholungen (`2-3 mal`) und
   **Alternativen** mit `oder` — bei Technik, Ursprung, Ziel, Richtung oder ganzen Schlägen.
 - **Tippfehler-tolerant.** Vertippt bei Position, Keyword oder Richtung? Die Fehlermeldung nennt
-  den nächsten gültigen Begriff – *„meinten Sie „Mitte"?"* (nur Vorschlag, keine stille Korrektur).
+  den nächsten gültigen Begriff – *„meinten Sie ‚Mitte‘?"* (nur Vorschlag, keine stille Korrektur).
 - **Schlaue Pfeile.** Spielen beide dieselbe Linie, verschmelzen die Pfeile zu einer Linie mit
   zwei Spitzen und Farbverlauf, der am Netz wechselt.
 - **Balleimer-Modus** (Multiball) für Beinarbeits-Übungen mit Zuspiel.
 - **Export** als **PNG** oder **SVG**.
 - **Zweisprachig** (Deutsch / Englisch) per Flaggen-Umschalter — Standard = Browsersprache.
-- **Keine Abhängigkeiten, kein Build.** Reines HTML/CSS/Vanilla-JS, durch 80+ Tests abgesichert.
+- **Keine Abhängigkeiten, kein Build.** Reines HTML/CSS/Vanilla-JS, durch 100+ Tests abgesichert.
 
 ## Notation
 
@@ -114,6 +117,10 @@ tests/                  Node-Testsuite
 Wenn dir das Tool hilft, kannst du die Weiterentwicklung unterstützen:
 
 <a href="https://www.buymeacoffee.com/flocksservK"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="44"></a>
+
+## Entstehung
+
+Teile dieses Projekts sind in Zusammenarbeit mit KI-Werkzeugen entstanden.
 
 ## Lizenz
 

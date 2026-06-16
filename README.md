@@ -6,7 +6,7 @@
 
 ![Example: three tables with forehand/backhand topspin arrows](assets/preview.svg)
 
-Coaches and players jot drills in a compact shorthand like `VHT aus VH in Mitte`
+Coaches and players jot drills in a compact shorthand like `FHT from FH to middle`
 ("forehand topspin from the forehand into the middle"). This tool reads that shorthand and
 draws it — one mini table‑tennis table per rally step, with coloured ball‑path arrows for
 both players. Type a drill, watch it appear, export it for your training plan.
@@ -16,19 +16,21 @@ No accounts, no install, no build step — a single static page that runs entire
 ## Highlights
 
 - **Text → diagram, live.** Type the notation, the table view updates instantly.
-- **Understands real coaching shorthand.** The `aus …` (origin) may be omitted — the origin is
-  inferred from the **rally chain** (where the previous ball landed) or the stroke's hand.
-- **Rich notation:** directions (`diagonal` / `parallel`), depths (`kurz` / `halblang` / `lang`),
-  zones (`ganzer Tisch`, `halber Tisch RH`, `Mitte VH`), repetitions (`2-3 mal`), and
-  **alternatives** with `oder` on the technique, origin, target, direction — or whole strokes.
+- **Two input modes.** A **table** (one rally step per row) or a free **sequence** — type Player A’s
+  strokes (one per line, or separated by `->` / comma) and Player B is filled in automatically.
+- **Understands real coaching shorthand.** The `from …` (origin) may be omitted — the origin is
+  inferred from the **rally chain** (where the previous ball landed) or the stroke’s hand.
+- **Rich notation:** directions (`diagonal` / `parallel`), depths (`short` / `half-long` / `long`),
+  zones (`whole table`, `half table BH`, `middle FH`), repetitions (`2-3 times`), and
+  **alternatives** with `or` on the technique, origin, target, direction — or whole strokes.
 - **Typo‑friendly.** Misspell a position, keyword or direction and the error points you at the
-  closest valid word — *“did you mean „Mitte"?”* (a suggestion only, never a silent rewrite).
+  closest valid word — *“did you mean ‘middle’?”* (a suggestion only, never a silent rewrite).
 - **Smart arrows.** When both players hit the same line, the two arrows merge into a single
   two‑headed line with a colour gradient that switches at the net.
-- **Ball‑feeder (multiball) mode** for one‑player footwork drills.
+- **Ball‑feeder (multiball) mode** for one‑player footwork drills (in both input modes).
 - **Export** the diagram as **PNG** or **SVG**.
 - **Bilingual UI** (German / English) with a flag switch — defaults to your browser language.
-- **Zero dependencies, no build.** Plain HTML/CSS/vanilla JS. Covered by 80+ unit tests.
+- **Zero dependencies, no build.** Plain HTML/CSS/vanilla JS. Covered by 100+ unit tests.
 
 ## Notation
 
@@ -117,6 +119,8 @@ tests/                  Node test suite
 
 Plain HTML, CSS and vanilla JavaScript — no framework, no bundler, no runtime dependencies.
 The whole thing is a handful of small files served as static assets.
+
+Parts of this project were developed in collaboration with AI tooling.
 
 ## Support
 

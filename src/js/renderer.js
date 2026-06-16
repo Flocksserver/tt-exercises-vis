@@ -171,45 +171,71 @@
     return out;
   }
 
+  // „×N"-Klammer über einer wiederholten Gruppe (im oberen Band gezeichnet).
+  function drawRepeatBadge(svg, grp, bandH) {
+    var t0 = geo.table(grp.start), t1 = geo.table(grp.start + grp.len - 1);
+    var x1 = t0.startX, x2 = t1.startX + t1.width, top = bandH - 12, bot = bandH - 6;
+    svg.appendChild(el('path', {
+      d: 'M' + x1 + ',' + bot + ' L' + x1 + ',' + top + ' L' + x2 + ',' + top + ' L' + x2 + ',' + bot,
+      fill: 'none', stroke: '#0a5c2c', 'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }));
+    svg.appendChild(label((x1 + x2) / 2, top - 3, '×' + grp.repeat, { size: 13, fill: '#0a5c2c' }));
+  }
+
   function render(rows, opts) {
     opts = opts || {};
     if (opts.multiball && !opts.feeder) opts.feeder = 'B';
 
     var n = Math.max(rows.length, 1);
     var dim = geo.layout(n);
+    var groups = (opts.repeatGroups && opts.repeatGroups.length) ? opts.repeatGroups : null;
+    var bandH = groups ? 30 : 0;
+    var totalH = dim.height + bandH;
 
-    var svg = el('svg', { xmlns: SVGNS, width: dim.width, height: dim.height, viewBox: '0 0 ' + dim.width + ' ' + dim.height });
+    var svg = el('svg', { xmlns: SVGNS, width: dim.width, height: totalH, viewBox: '0 0 ' + dim.width + ' ' + totalH });
     svg.setAttribute('id', 'svg');
     svg.style.width = '100%'; svg.style.height = 'auto'; svg.style.maxWidth = dim.width + 'px';
     svg.style.display = 'block'; svg.style.margin = '0 auto';
 
+    // Barrierefreiheit: das Diagramm als Bild mit Textalternative auszeichnen.
+    var alt = (TTV.i18n && TTV.i18n.t) ? TTV.i18n.t('svgAlt') : 'Table-tennis drill diagram';
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', alt);
+    var title = el('title'); title.textContent = alt; svg.appendChild(title);
+
     defineMarkers(svg);
+    if (groups) groups.forEach(function (grp) { drawRepeatBadge(svg, grp, bandH); });
+
+    // Inhalt (Tische/Pfeile) ggf. um die Band-Höhe nach unten verschieben.
+    var g = el('g');
+    if (bandH) g.setAttribute('transform', 'translate(0,' + bandH + ')');
+    svg.appendChild(g);
 
     for (var i = 0; i < rows.length; i++) {
       var t = geo.table(i);
-      drawTable(svg, t, opts);
+      drawTable(g, t, opts);
       var a = rows[i].a, b = rows[i].b;
 
       if (opts.multiball) {
         // Balleimer: nur Spieler A. Das Zuspiel (gestrichelt) geht dorthin, wo A spielt.
-        if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(svg, t, a);
+        if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(g, t, a);
         if (a && a.kind === 'stroke') {
           a.shots.map(function (s) { return prep(t, s, a.player, opts); }).forEach(function (S) {
-            drawZoneAndLabel(svg, t, S);
+            drawZoneAndLabel(g, t, S);
             S.fromPts.forEach(function (fp) {
-              svg.appendChild(arrowPath(geo.point(t, 'B', 'RH', 'halblang'), fp, 'feed', true));
-              S.arrows.forEach(function (aa) { svg.appendChild(arrowPath(fp, aa.toPt, S.colorKey, aa.dashed)); });
+              g.appendChild(arrowPath(geo.point(t, 'B', 'RH', 'halblang'), fp, 'feed', true));
+              S.arrows.forEach(function (aa) { g.appendChild(arrowPath(fp, aa.toPt, S.colorKey, aa.dashed)); });
             });
           });
         }
         continue;
       }
 
-      if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(svg, t, a);
-      if (b && (b.kind === 'frei' || b.kind === 'endlos')) drawMarker(svg, t, b);
+      if (a && (a.kind === 'frei' || a.kind === 'endlos')) drawMarker(g, t, a);
+      if (b && (b.kind === 'frei' || b.kind === 'endlos')) drawMarker(g, t, b);
       var aShots = (a && a.kind === 'stroke') ? a.shots.map(function (s) { return prep(t, s, a.player, opts); }) : [];
       var bShots = (b && b.kind === 'stroke') ? b.shots.map(function (s) { return prep(t, s, b.player, opts); }) : [];
-      aShots.concat(bShots).forEach(function (S) { drawZoneAndLabel(svg, t, S); });
+      aShots.concat(bShots).forEach(function (S) { drawZoneAndLabel(g, t, S); });
 
       // Gegenläufige Segmente (gleiche Strecke hin & zurück) -> zweifarbige Doppellinie
       var aSegs = segmentsOf(aShots), bSegs = segmentsOf(bShots);
@@ -218,14 +244,14 @@
         for (var j = 0; j < bSegs.length; j++) {
           var bs = bSegs[j];
           if (!bs.used && samePD(as.fromPD, bs.toPD) && samePD(as.toPD, bs.fromPD)) {
-            drawDoubleArrow(svg, as.fromPt, as.toPt, as.dashed || bs.dashed);
+            drawDoubleArrow(g, as.fromPt, as.toPt, as.dashed || bs.dashed);
             as.used = true; bs.used = true;
             break;
           }
         }
       });
       aSegs.concat(bSegs).forEach(function (s) {
-        if (!s.used) svg.appendChild(arrowPath(s.fromPt, s.toPt, s.colorKey, s.dashed));
+        if (!s.used) g.appendChild(arrowPath(s.fromPt, s.toPt, s.colorKey, s.dashed));
       });
     }
     return svg;

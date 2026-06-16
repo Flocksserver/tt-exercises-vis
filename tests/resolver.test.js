@@ -48,6 +48,24 @@ test('„über Ecke“ ohne Seite -> diagonal an die Außenkante (weit)', () => 
   assert.equal(s0(seq([['RHT aus RH in eine Ecke', '']])[0].a).arrows[0].to.pos, 'RHweit');
 });
 
+test('Sequenz-Modus: inferReplies leitet Spieler B ab', () => {
+  // Topspin -> Block; Landung VH -> VHB
+  var r = R([{ a: P('VHT aus VH diagonal'), b: { type: 'empty' } }], { inferReplies: true });
+  assert.equal(r[0].b.kind, 'stroke');
+  assert.equal(s0(r[0].b).label, 'VHB');
+  // ohne Flag bleibt B leer
+  assert.equal(R([{ a: P('VHT aus VH diagonal'), b: { type: 'empty' } }])[0].b, null);
+  // Konter -> Konter (Landung RH -> RHK)
+  assert.equal(s0(R([{ a: P('RHK aus RH in RH'), b: { type: 'empty' } }], { inferReplies: true })[0].b).label, 'RHK');
+  // frei -> keine Ableitung
+  assert.equal(R([{ a: P('frei'), b: { type: 'empty' } }], { inferReplies: true })[0].b, null);
+  // explizites B wird NICHT überschrieben
+  assert.equal(s0(R([{ a: P('VHT aus VH diagonal'), b: P('Schupf in RH') }], { inferReplies: true })[0].b).label, 'Schupf');
+  // Kette: A2-Ursprung kommt aus dem (inferierten) B1
+  var ch = R([{ a: P('VHT aus VH diagonal'), b: { type: 'empty' } }, { a: P('VHT'), b: { type: 'empty' } }], { inferReplies: true });
+  assert.equal(s0(ch[1].a).from.pos, 'VH');
+});
+
 test('Bruchzone wird zu Anteil-Band (lx)', () => {
   // 2/3 VH: lx von 1/3 bis 1 (Sicht A)
   const z = s0(seq([['Block in 2/3 VH', '']])[0].a).zone;
