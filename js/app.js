@@ -145,7 +145,9 @@
       var r = merged[i], nx = merged[i + 1]; out.push(r);
       var rep = r.a && r.a.type === 'stroke' && r.a.repeat && /^\d+$/.test(String(r.a.repeat)) && +r.a.repeat > 1;
       if (rep && nx && nx.a && nx.a.type === 'stroke' && originKey(r.a) !== originKey(nx.a)) {
-        var tr = {}; for (var k in r.a) tr[k] = r.a[k]; tr.repeat = null;   // Übergangsball ohne Wiederholung
+        var n = +r.a.repeat;
+        var tr = {}; for (var k in r.a) tr[k] = r.a[k]; tr.repeat = null;   // der N-te Ball = Übergang
+        r.a.repeat = (n - 1) > 1 ? String(n - 1) : null;                   // Loop zeigt einen weniger
         out.push({ a: tr, b: { type: 'empty' } });
       }
     }
@@ -418,8 +420,14 @@
       TTV.exporter.exportSVG(currentSvg(), 'tt-uebung.svg');
     });
     document.getElementById('btnReset').addEventListener('click', function () {
-      if (mode === 'sequence') { dom.seqA.value = defaultSeqText(); dom.seqB.value = ''; seqPristine = true; renderNow(); }
-      else loadRows(defaultRows(), {}, 'default');
+      // Zurücksetzen = Eingaben LÖSCHEN (kein Beispiel wiederherstellen).
+      if (mode === 'sequence') {
+        dom.seqA.value = ''; dom.seqB.value = ''; seqPristine = false;
+        dom.seqMultiball.checked = false; dom.panelSequence.classList.remove('hide-b');
+        renderNow();
+      } else {
+        loadRows([], { multiball: false }, null);   // eine leere Zeile
+      }
     });
 
     // Sprachumschalter (Flaggen) + Reaktion auf Sprachwechsel
