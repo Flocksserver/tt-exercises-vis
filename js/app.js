@@ -33,7 +33,7 @@
   // „ - “ (Bindestrich mit Leerzeichen) und „|“. (Bare „-“ NICHT, sonst bräche „VH-Mitte“,
   // „2-3“, „US-Aufschlag“; „→“ zusätzlich erlaubt, ist aber nicht tippbar.)
   function splitSeq(text) {
-    return String(text || '').split(/\r?\n|[,;|]|->|→|\s-\s/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return String(text || '').split(/\r?\n|[,;|]|->|→|\s-\s|\s+(?:und|and)\s+/i).map(function (s) { return s.trim(); }).filter(Boolean);
   }
 
   // Standard-Sequenz aus examples.js (authentische CampMappe-Übung), je Sprache.
