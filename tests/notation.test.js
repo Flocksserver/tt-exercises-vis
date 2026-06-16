@@ -208,6 +208,15 @@ test('Zweiwort-Technik: „Seite + Schlagart“ -> Kürzel', () => {
   assert.equal(P('VHT aus VH in Mitte').technik, 'VHT');
 });
 
+test('normalize: alle „Seite + Schlagart“-Paare werden ersetzt (auch mehrere)', () => {
+  const N = TTV.notation.normalize;
+  // ein dazwischenstehendes „vorhand“ (Ursprung) darf das zweite Paar nicht verschlucken
+  assert.equal(N('vorhand topspin aus vorhand vorhand topspin aus rückhand'),
+    'VHT aus vorhand VHT aus rückhand');
+  assert.equal(N('Rückhand Block dann Vorhand Topspin'), 'RHB dann VHT');
+  assert.equal(N('VHT aus VH in Mitte'), 'VHT aus VH in Mitte');   // unverändert
+});
+
 test('Default: ohne Ziel & Richtung -> diagonal aus Schlaghand', () => {
   // bloße Technik ist gültig (kein noTarget-Fehler mehr)
   const r = P('VHT');

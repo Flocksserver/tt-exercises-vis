@@ -53,24 +53,52 @@
   // Ein Sequenz-Element zu (ggf. mehreren) Schlägen expandieren.
   // Reine Positionsfolge „VH Mitte RH" -> je Position ein Schlag: Vorhand aus VH/Mitte (Mitte =
   // umlaufen), Rückhand aus RH, jeweils diagonal auf die Schlaghand-Seite. Sonst: ein normaler Schlag.
+  // Beginnt hier ein neuer Schlag? (Technik-Token: Kürzel VH/RH/FH/BH[+T/K/B/F], „VH-…"/Slash,
+  // ausgeschriebene Seite oder bekannte Schlagart). Positionen/Keywords sind KEIN Technik-Start.
+  function isTechnikStart(tok) {
+    var w = String(tok).toLowerCase();
+    return /^(vh|rh|fh|bh)([tkbf])?$/.test(w) || /^(vh|rh|fh|bh)[-\/]/.test(w) ||
+      /^(vorhand|forehand|r[üu]ckhand|backhand)$/.test(w) ||
+      /^(topspin|block|konter|counter|schupf|schub|push|flip|flick|aufschlag|serve|er[öo]ffnung|ballonabwehr|lob|r[üu]ckschlag)$/.test(w);
+  }
+  var SLOT_OPENER = /^(aus|from|in|auf|über|ueber|to|into|on|over|oder|or|bis|through|thru|der|of)$/i;
+  // Mehrere Schläge in einem Element ohne Trenner zerlegen: ein Technik-Token nach einem bereits
+  // begonnenen Schlag (und NICHT in einem Positions-Slot nach aus/in/oder …) startet einen neuen.
+  function splitStrokes(text) {
+    var toks = String(text || '').split(/\s+/).filter(Boolean);
+    var strokes = [], cur = [], curTech = false, prev = '';
+    for (var i = 0; i < toks.length; i++) {
+      var tok = toks[i], isTech = isTechnikStart(tok), opener = SLOT_OPENER.test(prev);
+      if (cur.length && curTech && isTech && !opener) { strokes.push(cur.join(' ')); cur = []; curTech = false; }
+      cur.push(tok);
+      if (isTech && !SLOT_OPENER.test(prev)) curTech = true;
+      prev = tok;
+    }
+    if (cur.length) strokes.push(cur.join(' '));
+    return strokes;
+  }
+
   function expandItem(itemText) {
     // „dann/danach/then" sind nur Bindewörter (z. B. „… dann frei") -> entfernen.
     var t = itemText.trim().replace(/^\s*(dann|danach|then)\s+/i, '');
     if (/^(frei|free|endlos|endless)$/i.test(t)) return [TTV.notation.parseCell(t)];   // alleinstehender Marker
-    var toks = t.split(/\s+/).filter(Boolean).filter(function (x) { return !/^(dann|danach|then)$/i.test(x); });
-    // abschließendes „frei/free" gehört zum LETZTEN Schlag (der ist offen) – keine eigene Kachel
-    var openLast = toks.length > 1 && /^(frei|free)$/i.test(toks[toks.length - 1]);
-    if (openLast) toks = toks.slice(0, -1);
-    if (toks.length && toks.every(function (x) { return barePos(x); })) {
-      return toks.map(function (tok, idx) {
-        var hand = TTV.replies.handForLanding(barePos(tok));   // VH/Mitte -> VH, RH -> RH
-        var last = idx === toks.length - 1;
-        var text = (last && openLast) ? (hand + 'T aus ' + tok + ' frei')   // letzter Ball offen
-                                      : (hand + 'T aus ' + tok + ' in ' + hand);
+    var all = t.split(/\s+/).filter(Boolean).filter(function (x) { return !/^(dann|danach|then)$/i.test(x); });
+    // abschließendes „frei/free" gehört zum LETZTEN Schlag (der ist offen)
+    var openLast = all.length > 1 && /^(frei|free)$/i.test(all[all.length - 1]);
+    var posToks = openLast ? all.slice(0, -1) : all;
+    // reine Positionsfolge (Beinarbeit) -> je Position ein Schlag
+    if (posToks.length && posToks.every(function (x) { return barePos(x); })) {
+      return posToks.map(function (tok, idx) {
+        var hand = TTV.replies.handForLanding(barePos(tok));
+        var last = idx === posToks.length - 1;
+        var text = (last && openLast) ? (hand + 'T aus ' + tok + ' frei') : (hand + 'T aus ' + tok + ' in ' + hand);
         return TTV.notation.parseCell(text);
       });
     }
-    return [TTV.notation.parseCell(t)];
+    // sonst: mehrere Schläge ohne Trenner automatisch an Technik-Grenzen zerlegen
+    var norm = (TTV.notation.normalize ? TTV.notation.normalize(all.join(' ')) : all.join(' '));
+    var subs = splitStrokes(norm);
+    return subs.map(function (s) { return TTV.notation.parseCell(s); });
   }
 
   function buildSequenceRows() {
