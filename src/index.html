@@ -71,6 +71,10 @@
           <span class="seq-label" data-i18n="seqAlabel">Spieler A – Sequenz</span>
           <textarea id="seqA" class="seq-input" rows="4" autocomplete="off" spellcheck="false" data-i18n-placeholder="seqPlaceholderA"></textarea>
         </label>
+        <div class="voice-row" id="voiceRow" hidden>
+          <button type="button" id="btnVoice" class="btn btn-voice"><span aria-hidden="true">🎤</span> <span data-i18n="voiceBtn">Diktieren</span></button>
+          <span class="voice-status" id="voiceStatus" aria-live="polite"></span>
+        </div>
         <span class="cell-error" id="seqError" aria-live="polite"></span>
         <label class="seq-field seq-field-b">
           <span class="seq-label" data-i18n="seqBlabel">Spieler B – optional</span>
@@ -136,6 +140,7 @@
   <script src="js/renderer.js"></script>
   <script src="js/export.js"></script>
   <script src="js/examples.js"></script>
+  <script src="js/voice.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

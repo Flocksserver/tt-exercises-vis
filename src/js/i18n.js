@@ -55,6 +55,11 @@
         '<li>Gestrichelt = Alternative (<code>oder</code>) bzw. Zuspiel.</li>' +
         '<li>Schattierte Fläche = Bereich (<code>bis</code>), <code>ganzer Tisch</code> oder <code>unregelmäßig</code>.</li>' +
         '<li>Tiefe am Tisch: Netz = <b>kurz</b>, Mitte = <b>halblang</b>, Grundlinie = <b>lang</b>.</li></ul>',
+      voiceBtn: 'Diktieren',
+      voiceLoading: 'Sprachmodell lädt… (einmalig)',
+      voiceListening: 'Höre zu… (Klick zum Stoppen)',
+      voiceTranscribing: 'Erkenne…',
+      voiceError: 'Spracheingabe nicht möglich.',
       feedbackTitle: 'Mitmachen & Feedback',
       fbUse: 'Nutzt du das Tool und hilft es dir? – Gib mir dazu gerne Rückmeldung.',
       fbBug: 'Hast du einen Fehler gefunden oder vermisst du ein Feature? – Gib mir gerne Rückmeldung.',
@@ -122,6 +127,11 @@
         '<li>Dashed = alternative (<code>or</code>) or feed.</li>' +
         '<li>Shaded area = range (<code>through</code>), <code>whole table</code> or <code>irregular</code>.</li>' +
         '<li>Depth on the table: net = <b>short</b>, middle = <b>half-long</b>, baseline = <b>long</b>.</li></ul>',
+      voiceBtn: 'Dictate',
+      voiceLoading: 'Loading speech model… (one-time)',
+      voiceListening: 'Listening… (click to stop)',
+      voiceTranscribing: 'Transcribing…',
+      voiceError: 'Voice input failed.',
       feedbackTitle: 'Get involved & feedback',
       fbUse: 'Using the tool and finding it helpful? – I\'d love to hear from you.',
       fbBug: 'Found a bug or missing a feature? – Let me know.',

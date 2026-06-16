@@ -412,6 +412,28 @@
       dom.panelSequence.classList.toggle('hide-b', dom.seqMultiball.checked);   // B-Feld ausblenden
       renderNow();
     });
+
+    // Spracheingabe (Experiment) – nur einblenden, wenn der Browser sie unterstützt.
+    dom.voiceRow = document.getElementById('voiceRow');
+    dom.btnVoice = document.getElementById('btnVoice');
+    dom.voiceStatus = document.getElementById('voiceStatus');
+    if (TTV.voice && TTV.voice.isSupported() && dom.voiceRow) {
+      dom.voiceRow.hidden = false;
+      dom.btnVoice.addEventListener('click', function () {
+        TTV.voice.toggle(isEn() ? 'en' : 'de', {
+          onStatus: function (state) {
+            var k = { loading: 'voiceLoading', listening: 'voiceListening', transcribing: 'voiceTranscribing', error: 'voiceError' }[state];
+            dom.voiceStatus.textContent = k ? T(k) : '';
+            dom.btnVoice.classList.toggle('recording', state === 'listening');
+          },
+          onResult: function (text) {
+            if (!text) return;
+            dom.seqA.value = text; seqPristine = false;
+            dom.seqA.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        });
+      });
+    }
     dom.multiball.addEventListener('change', function () { updateBalleimer(); renderNow(); });
     document.getElementById('btnPng').addEventListener('click', function () {
       TTV.exporter.exportPNG(currentSvg(), 'tt-uebung.png', 3);
